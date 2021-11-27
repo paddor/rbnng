@@ -2,7 +2,6 @@
  * Copyright (c) 2021 Adib Saad
  *
  */
-
 #include "msg.h"
 #include "rbnng.h"
 #include "socket.h"
@@ -21,7 +20,6 @@ socket_rep0_listen(VALUE self, VALUE url)
       0) {
     rb_raise(rbnng_exceptionClass, "nng_listen %d", rv);
   }
-  return self;
 }
 
 void*
@@ -116,9 +114,9 @@ socket_rep0_send_msg(VALUE self, VALUE rb_strMsg)
 static VALUE
 socket_rep0_initialize(VALUE self)
 {
-  int rv;
   RbnngSocket* p_rbnngSocket;
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
+  int rv;
   if ((rv = nng_rep0_open(&p_rbnngSocket->socket)) != 0) {
     rb_raise(rbnng_exceptionClass, "nng_rep0_open %d", rv);
   }

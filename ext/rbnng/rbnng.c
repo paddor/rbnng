@@ -28,7 +28,8 @@ Init_rbnng()
   rb_define_singleton_method(nng_module, "nng_version", library_version, 0);
   rbnng_exceptionClass = rb_define_class_under(nng_module, "Error", rb_eRuntimeError);
 
+  rbnng_msg_Init(nng_module);
   rbnng_rep0_Init(nng_module);
   rbnng_req0_Init(nng_module);
-  rbnng_msg_Init(nng_module);
+  rbnng_pair_Init(nng_module);
 }

@@ -27,6 +27,8 @@ extern void
 rbnng_rep0_Init(VALUE nng_module);
 extern void
 rbnng_req0_Init(VALUE nng_module);
+extern void
+rbnng_pair_Init(VALUE nng_module);
 extern VALUE
 socket_alloc(VALUE);
 

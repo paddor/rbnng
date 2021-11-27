@@ -2,7 +2,6 @@
  * Copyright (c) 2021 Adib Saad
  *
  */
-
 #include "msg.h"
 #include "rbnng.h"
 #include "socket.h"
@@ -21,7 +20,6 @@ socket_req0_dial(VALUE self, VALUE url)
       0) {
     rb_raise(rbnng_exceptionClass, "nng_dial %d", rv);
   }
-  return self;
 }
 
 void*
@@ -92,8 +90,6 @@ socket_req0_send_msg(VALUE self, VALUE rb_strMsg)
     .nextMsg = rb_strMsg,
   };
   rb_thread_call_without_gvl(req0_send_msg_blocking, &sendMsgReq, 0, 0);
-
-  return Qnil;
 }
 
 static VALUE
@@ -101,8 +97,8 @@ socket_req0_initialize(VALUE self)
 {
   RbnngSocket* p_rbnngSocket;
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
-  int rv = nng_req0_open(&p_rbnngSocket->socket);
-  if (rv != 0) {
+  int rv;
+  if ((rv = nng_req0_open(&p_rbnngSocket->socket)) != 0) {
     rb_raise(rbnng_exceptionClass, "nng_req0_open %d", rv);
   }
   return self;
