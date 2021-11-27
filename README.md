@@ -23,6 +23,8 @@ This gem provides an API to interact with nng using a Ruby C extension.
       --with-nng-include=$HOME/.linuxbrew/Cellar/nng/1.5.2/include
    ```
 
+   Use `gem install nng --pre` if trying to install an unreleased version.
+
 ## Examples
 
 Examples can be found under the [demos](demos/) directory.
