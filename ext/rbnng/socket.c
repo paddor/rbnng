@@ -64,20 +64,19 @@ socket_send_msg_blocking(void* data)
   RbnngSocket* p_rbnngSocket;
   Data_Get_Struct(p_sendMsgReq->socketObj, RbnngSocket, p_rbnngSocket);
   int rv;
-  nng_msg* msg;
-  if ((rv = nng_msg_alloc(&msg, 0)) != 0) {
+  nng_msg* p_msg;
+  if ((rv = nng_msg_alloc(&p_msg, 0)) != 0) {
     rb_raise(rbnng_exceptionClass, "nng_msg_alloc %d", rv);
   }
 
-  nng_msg_append(msg,
+  nng_msg_append(p_msg,
                  StringValuePtr(p_sendMsgReq->nextMsg),
                  RSTRING_LEN(p_sendMsgReq->nextMsg));
 
-  if ((rv = nng_sendmsg(p_rbnngSocket->socket, msg, 0)) != 0) {
+  // nng_sendmsg takes ownership of p_msg, so no need to free it afterwards.
+  if ((rv = nng_sendmsg(p_rbnngSocket->socket, p_msg, 0)) != 0) {
     rb_raise(rbnng_exceptionClass, "nng_sendmsg %d", rv);
   }
-
-  nng_msg_free(msg);
 
   return 0;
 }

@@ -1,8 +1,6 @@
 require 'nng'
 require 'set'
 
-# TODO: currently segfaulting
-
 def start_node(i, total_nodes)
   sock = NNG::Socket::Bus0.new
   addr = "ipc:///tmp/bus-node-#{i}.ipc"

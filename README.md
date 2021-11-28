@@ -38,7 +38,7 @@ Examples can be found under the [demos](demos/) directory.
 -  Protocols
    -  [x] Req0/Rep0
    -  [x] Pair0/Pair1
-   -  [x] Pub/Sub
-   -  [x] Bus
+   -  [x] Pub0/Sub0
+   -  [x] Bus0
    -  [ ] Pipeline
    -  [ ] Survey
