@@ -40,5 +40,5 @@ Examples can be found under the [demos](demos/) directory.
    -  [x] Pair0/Pair1
    -  [x] Pub0/Sub0
    -  [x] Bus0
-   -  [x] Survey
-   -  [ ] Pipeline
+   -  [x] Survey0
+   -  [x] Pipeline0
