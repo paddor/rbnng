@@ -23,12 +23,8 @@ socket_rep0_listen(VALUE self, VALUE url)
 }
 
 void*
-rep0_get_msg_blocking(void* data)
+rep0_get_msg_blocking(RbnngSocket* p_rbnngSocket)
 {
-  VALUE self = (VALUE)data;
-  RbnngSocket* p_rbnngSocket;
-  Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
-
   nng_aio* p_aio;
   int rv;
   if ((rv = nng_aio_alloc(&p_aio, 0, 0)) != 0) {
@@ -43,25 +39,27 @@ rep0_get_msg_blocking(void* data)
   }
 
   nng_msg* p_msg = nng_aio_get_msg(p_aio);
+  p_rbnngSocket->p_getMsgResult = p_msg;
   nng_aio_free(p_aio);
-  return p_msg;
+  return 0;
 }
 
 static VALUE
 socket_rep0_get_msg(VALUE self)
 {
-  nng_msg* nng_msg_ptr =
-    rb_thread_call_without_gvl(rep0_get_msg_blocking, self, 0, 0);
+  RbnngSocket* p_rbnngSocket;
+  Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
+  int rv =
+    rb_thread_call_without_gvl(rep0_get_msg_blocking, p_rbnngSocket, 0, 0);
 
-  if (nng_msg_ptr) {
-    RbnngMsg* rbnng_new_msg_ptr;
+  if (rv == 0) {
+    RbnngMsg* p_newMsg;
     VALUE newMsg = rb_class_new_instance(0, 0, rbnng_MsgClass);
-    Data_Get_Struct(newMsg, RbnngMsg, rbnng_new_msg_ptr);
-    rbnng_new_msg_ptr->msg = nng_msg_ptr;
+    Data_Get_Struct(newMsg, RbnngMsg, p_newMsg);
+    p_newMsg->p_msg = p_rbnngSocket->p_getMsgResult;
     return newMsg;
   } else {
-    VALUE newMsg = rb_class_new_instance(0, 0, rbnng_MsgClass);
-    return newMsg;
+    return Qnil;
   }
 }
 

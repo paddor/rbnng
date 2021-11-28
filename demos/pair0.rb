@@ -1,5 +1,4 @@
 require 'nng'
-require 'set'
 
 ADDR  = "ipc:///tmp/pair.ipc"
 NODE0 = "NODE0"

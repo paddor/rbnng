@@ -13,7 +13,7 @@ extern VALUE rbnng_MsgClass;
 
 typedef struct
 {
-  nng_msg* msg;
+  nng_msg* p_msg;
 } RbnngMsg;
 
 extern void
