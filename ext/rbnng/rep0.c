@@ -29,6 +29,7 @@ rep0_get_msg_blocking(RbnngSocket* p_rbnngSocket)
   int rv;
   if ((rv = nng_aio_alloc(&p_aio, 0, 0)) != 0) {
     rb_raise(rbnng_exceptionClass, "nng_aio_alloc %d", rv);
+    return rv;
   }
 
   nng_ctx_recv(p_rbnngSocket->ctx, p_aio);
@@ -36,6 +37,7 @@ rep0_get_msg_blocking(RbnngSocket* p_rbnngSocket)
 
   if ((rv = nng_aio_result(p_aio)) != 0) {
     rb_raise(rbnng_exceptionClass, "nng_aio_result %d", rv);
+    return rv;
   }
 
   nng_msg* p_msg = nng_aio_get_msg(p_aio);

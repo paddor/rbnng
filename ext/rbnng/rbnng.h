@@ -19,5 +19,7 @@ extern void
 rbnng_pub0_Init(VALUE nng_module);
 extern void
 rbnng_sub0_Init(VALUE nng_module);
+extern void
+rbnng_bus0_Init(VALUE nng_module);
 
 #endif

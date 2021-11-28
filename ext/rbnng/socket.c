@@ -30,7 +30,7 @@ socket_get_msg_blocking(RbnngSocket* p_rbnngSocket)
   int rv;
   if ((rv = nng_recvmsg(p_rbnngSocket->socket, &p_msg, 0)) != 0) {
     rb_raise(rbnng_exceptionClass, "nng_recvmsg %d", rv);
-    return 0;
+    return rv;
   }
 
   p_rbnngSocket->p_getMsgResult = p_msg;

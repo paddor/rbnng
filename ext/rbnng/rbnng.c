@@ -35,4 +35,5 @@ Init_rbnng()
   rbnng_pair_Init(nng_module);
   rbnng_sub0_Init(nng_module);
   rbnng_pub0_Init(nng_module);
+  rbnng_bus0_Init(nng_module);
 }

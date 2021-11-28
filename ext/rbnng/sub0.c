@@ -17,7 +17,7 @@ socket_sub0_initialize(VALUE self)
   if ((rv = nng_sub0_open(&p_rbnngSocket->socket)) != 0) {
     rb_raise(rbnng_exceptionClass, "nng_sub0_open %d", rv);
   }
-  
+
   if ((rv = nng_socket_set(p_rbnngSocket->socket, NNG_OPT_SUB_SUBSCRIBE, "", 0)) != 0) {
     rb_raise(rbnng_exceptionClass, "nng_socket_set %d", rv);
   }
