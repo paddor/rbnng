@@ -17,8 +17,11 @@ socket_pair0_initialize(VALUE self)
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
   int rv;
   if ((rv = nng_pair0_open(&p_rbnngSocket->socket)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_pair1_open %d", rv);
+    raise_error(rv);
+    return Qnil;
   }
+
+  return self;
 }
 
 static VALUE
@@ -28,8 +31,11 @@ socket_pair1_initialize(VALUE self)
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
   int rv;
   if ((rv = nng_pair1_open(&p_rbnngSocket->socket)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_pair1_open %d", rv);
+    raise_error(rv);
+    return Qnil;
   }
+
+  return self;
 }
 
 void

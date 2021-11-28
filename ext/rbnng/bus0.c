@@ -15,11 +15,13 @@ socket_bus0_initialize(VALUE self)
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
   int rv;
   if ((rv = nng_bus0_open(&p_rbnngSocket->socket)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_bus0_open %d", rv);
+    raise_error(rv);
+    return Qnil;
   }
 
   if ((rv = nng_socket_set_ms(p_rbnngSocket->socket, NNG_OPT_RECVTIMEO, 100)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_socket_set_ms %d", rv);
+    raise_error(rv);
+    return Qnil;
   }
 
   return self;

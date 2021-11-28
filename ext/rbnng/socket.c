@@ -2,8 +2,8 @@
  * Copyright (c) 2021 Adib Saad
  *
  */
-#include "msg.h"
 #include "socket.h"
+#include "msg.h"
 #include "rbnng.h"
 #include <ruby.h>
 #include <ruby/thread.h>
@@ -29,7 +29,6 @@ socket_get_msg_blocking(RbnngSocket* p_rbnngSocket)
   nng_msg* p_msg = NULL;
   int rv;
   if ((rv = nng_recvmsg(p_rbnngSocket->socket, &p_msg, 0)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_recvmsg %d", rv);
     return rv;
   }
 
@@ -53,6 +52,7 @@ socket_get_msg(VALUE self)
     p_newMsg->p_msg = p_rbnngSocket->p_getMsgResult;
     return newMsg;
   } else {
+    raise_error(rv);
     return Qnil;
   }
 }
@@ -66,16 +66,19 @@ socket_send_msg_blocking(void* data)
   int rv;
   nng_msg* p_msg;
   if ((rv = nng_msg_alloc(&p_msg, 0)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_msg_alloc %d", rv);
+    return rv;
   }
 
-  nng_msg_append(p_msg,
-                 StringValuePtr(p_sendMsgReq->nextMsg),
-                 RSTRING_LEN(p_sendMsgReq->nextMsg));
+  rv = nng_msg_append(p_msg,
+                      StringValuePtr(p_sendMsgReq->nextMsg),
+                      RSTRING_LEN(p_sendMsgReq->nextMsg));
+  if (rv != 0) {
+    return rv;
+  }
 
   // nng_sendmsg takes ownership of p_msg, so no need to free it afterwards.
   if ((rv = nng_sendmsg(p_rbnngSocket->socket, p_msg, 0)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_sendmsg %d", rv);
+    return rv;
   }
 
   return 0;
@@ -89,7 +92,11 @@ socket_send_msg(VALUE self, VALUE rb_strMsg)
     .socketObj = self,
     .nextMsg = rb_strMsg,
   };
-  rb_thread_call_without_gvl(socket_send_msg_blocking, &sendMsgReq, 0, 0);
+  int rv =
+    rb_thread_call_without_gvl(socket_send_msg_blocking, &sendMsgReq, 0, 0);
+  if (rv != 0) {
+    raise_error(rv);
+  }
 }
 
 VALUE
@@ -98,11 +105,9 @@ socket_dial(VALUE self, VALUE url)
   Check_Type(url, T_STRING);
   RbnngSocket* p_rbnngSocket;
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
-  nng_dialer d;
   int rv;
-  if ((rv = nng_dial(p_rbnngSocket->socket, StringValueCStr(url), &d, 0)) !=
-      0) {
-    rb_raise(rbnng_exceptionClass, "nng_dial %d", rv);
+  if ((rv = nng_dial(p_rbnngSocket->socket, StringValueCStr(url), 0, 0)) != 0) {
+    raise_error(rv);
   }
 }
 
@@ -116,6 +121,6 @@ socket_listen(VALUE self, VALUE url)
   int rv;
   if ((rv = nng_listen(p_rbnngSocket->socket, StringValueCStr(url), NULL, 0)) !=
       0) {
-    rb_raise(rbnng_exceptionClass, "nng_listen %d", rv);
+    raise_error(rv);
   }
 }

@@ -33,12 +33,12 @@ Examples can be found under the [demos](demos/) directory.
 
 -  General
 
-   -  [ ] Better error handling
+   -  [x] Better error handling
 
 -  Protocols
    -  [x] Req0/Rep0
    -  [x] Pair0/Pair1
    -  [x] Pub0/Sub0
    -  [x] Bus0
+   -  [x] Survey
    -  [ ] Pipeline
-   -  [ ] Survey

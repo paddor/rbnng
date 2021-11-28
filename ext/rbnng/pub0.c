@@ -15,8 +15,10 @@ socket_pub0_initialize(VALUE self)
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
   int rv;
   if ((rv = nng_pub0_open(&p_rbnngSocket->socket)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_pub0_open %d", rv);
+    raise_error(rv);
+    return Qnil;
   }
+
   return self;
 }
 

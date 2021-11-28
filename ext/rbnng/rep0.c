@@ -18,7 +18,7 @@ socket_rep0_listen(VALUE self, VALUE url)
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
   if ((rv = nng_listen(p_rbnngSocket->socket, StringValueCStr(url), NULL, 0)) !=
       0) {
-    rb_raise(rbnng_exceptionClass, "nng_listen %d", rv);
+    raise_error(rv);
   }
 }
 
@@ -28,7 +28,6 @@ rep0_get_msg_blocking(RbnngSocket* p_rbnngSocket)
   nng_aio* p_aio;
   int rv;
   if ((rv = nng_aio_alloc(&p_aio, 0, 0)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_aio_alloc %d", rv);
     return rv;
   }
 
@@ -36,7 +35,6 @@ rep0_get_msg_blocking(RbnngSocket* p_rbnngSocket)
   nng_aio_wait(p_aio);
 
   if ((rv = nng_aio_result(p_aio)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_aio_result %d", rv);
     return rv;
   }
 
@@ -61,6 +59,7 @@ socket_rep0_get_msg(VALUE self)
     p_newMsg->p_msg = p_rbnngSocket->p_getMsgResult;
     return newMsg;
   } else {
+    raise_error(rv);
     return Qnil;
   }
 }
@@ -75,28 +74,32 @@ rep0_send_msg_blocking(void* data)
   nng_aio* p_aio;
   int rv;
   if ((rv = nng_aio_alloc(&p_aio, 0, 0)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_aio_alloc %d", rv);
+    return rv;
   }
 
   nng_msg* p_msg;
   if ((rv = nng_msg_alloc(&p_msg, 0)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_msg_alloc %d", rv);
+    return rv;
   }
 
   nng_msg_clear(p_msg);
-  nng_msg_append(p_msg,
-                 StringValuePtr(p_sendMsgReq->nextMsg),
-                 RSTRING_LEN(p_sendMsgReq->nextMsg));
+  rv = nng_msg_append(p_msg,
+                      StringValuePtr(p_sendMsgReq->nextMsg),
+                      RSTRING_LEN(p_sendMsgReq->nextMsg));
+  if (rv != 0) {
+    return rv;
+  }
 
   nng_aio_set_msg(p_aio, p_msg);
   nng_ctx_send(p_rbnngSocket->ctx, p_aio);
   nng_aio_wait(p_aio);
 
   if ((rv = nng_aio_result(p_aio)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_aio_result %d", rv);
+    return rv;
   }
 
   nng_aio_free(p_aio);
+  return 0;
 }
 
 static VALUE
@@ -108,7 +111,11 @@ socket_rep0_send_msg(VALUE self, VALUE rb_strMsg)
     .socketObj = self,
     .nextMsg = rb_strMsg,
   };
-  rb_thread_call_without_gvl(rep0_send_msg_blocking, &sendMsgReq, 0, 0);
+  int rv =
+    rb_thread_call_without_gvl(rep0_send_msg_blocking, &sendMsgReq, 0, 0);
+  if (rv != 0) {
+    raise_error(rv);
+  }
 }
 
 static VALUE
@@ -118,11 +125,11 @@ socket_rep0_initialize(VALUE self)
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
   int rv;
   if ((rv = nng_rep0_open(&p_rbnngSocket->socket)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_rep0_open %d", rv);
+    raise_error(rv);
   }
 
   if ((rv = nng_ctx_open(&p_rbnngSocket->ctx, p_rbnngSocket->socket)) != 0) {
-    rb_raise(rbnng_exceptionClass, "nng_ctx_open %d", rv);
+    raise_error(rv);
   }
 
   return self;
