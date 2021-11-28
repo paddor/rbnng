@@ -1,7 +1,5 @@
 # RBNNG - nng for ruby
 
-> :warning: **This is still alpha software, do not use in production.**
-
 [nng](https://nng.nanomsg.org/) is a lightweight, broker-less messaging library.
 This gem provides an API to interact with nng using a Ruby C extension.
 
