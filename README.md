@@ -34,6 +34,7 @@ Examples can be found under the [demos](demos/) directory.
 -  General
 
    -  [x] Better error handling
+   -  [ ] Add configuration options
 
 -  Protocols
    -  [x] Req0/Rep0
