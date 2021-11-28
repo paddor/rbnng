@@ -25,5 +25,9 @@ extern void
 rbnng_surveyor0_Init(VALUE nng_module);
 extern void
 rbnng_respondent0_Init(VALUE nng_module);
+extern void
+rbnng_push0_Init(VALUE nng_module);
+extern void
+rbnng_pull0_Init(VALUE nng_module);
 
 #endif

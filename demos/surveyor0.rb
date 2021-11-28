@@ -46,7 +46,7 @@ end
 
 def start
   threads = []
-  total_clients = 2
+  total_clients = 5
 
   threads << Thread.new { start_server(total_clients) }
 

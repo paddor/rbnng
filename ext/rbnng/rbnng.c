@@ -33,4 +33,6 @@ Init_rbnng()
   rbnng_bus0_Init(nng_module);
   rbnng_surveyor0_Init(nng_module);
   rbnng_respondent0_Init(nng_module);
+  rbnng_push0_Init(nng_module);
+  rbnng_pull0_Init(nng_module);
 }

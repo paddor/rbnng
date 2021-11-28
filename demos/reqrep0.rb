@@ -19,21 +19,19 @@ end
 def start_server(total_clients)
   sock = NNG::Socket::Rep0.new
   sock.listen(ADDR)
-  running_threads = Set.new
+  running_set = Set.new
   total_clients.times do |i|
-    running_threads.add i
+    running_set.add i
   end
-  total_finished = 0
   puts "[server] listening at #{ADDR}"
   loop do
     msg = sock.get_msg
     body = msg.body
     if body.start_with? 'fin'
       id = body.split('-')[1].to_i
-      running_threads.delete(id)
-      total_finished = total_finished + 1
-      puts "[server] client #{id} sent 'fin' message (remaining: #{running_threads.to_a.join(', ')})"
-      break if total_finished == total_clients
+      running_set.delete(id)
+      puts "[server] client #{id} sent 'fin' message (remaining: #{running_set.to_a.join(', ')})"
+      break if running_set.empty?
     else
       sock.send_msg body
     end

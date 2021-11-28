@@ -10,13 +10,13 @@ def start_node(i, total_nodes)
   # Wait for peers to listen
   sleep 1
 
-  running_nodes = Set.new
+  running_set = Set.new
   total_nodes.times do |n_i|
     next if i == n_i
     node_addr = "ipc:///tmp/bus-node-#{n_i}.ipc"
     sock.dial(node_addr)
     puts "[node-#{i}] dialed to #{node_addr}"
-    running_nodes.add n_i
+    running_set.add n_i
   end
 
   loop_times = (rand * 10).ceil
@@ -34,9 +34,9 @@ def start_node(i, total_nodes)
     puts "[node-#{i}] got message: \"#{body}\""
     if body.start_with? 'fin'
       id = body.split('-')[1].to_i
-      running_nodes.delete(id)
-      puts "[node-#{i}] node #{id} sent 'fin' message (remaining: #{running_nodes.to_a.join(', ')})"
-      break if running_nodes.empty?
+      running_set.delete(id)
+      puts "[node-#{i}] node #{id} sent 'fin' message (remaining: #{running_set.to_a.join(', ')})"
+      break if running_set.empty?
     end
   end
 
