@@ -33,4 +33,5 @@ rbnng_pull0_Init(VALUE nng_module)
     rbnng_SocketPull0Class, "initialize", socket_pull0_initialize, 0);
   rb_define_method(rbnng_SocketPull0Class, "get_msg", socket_get_msg, 0);
   rb_define_method(rbnng_SocketPull0Class, "listen", socket_listen, 1);
+  rb_define_method(rbnng_SocketPull0Class, "get_opt_int", socket_get_opt_int, 1);
 }

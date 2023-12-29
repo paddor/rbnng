@@ -34,4 +34,5 @@ rbnng_surveyor0_Init(VALUE nng_module)
   rb_define_method(rbnng_SocketSurveyor0Class, "send_msg", socket_send_msg, 1);
   rb_define_method(rbnng_SocketSurveyor0Class, "get_msg", socket_get_msg, 0);
   rb_define_method(rbnng_SocketSurveyor0Class, "listen", socket_listen, 1);
+  rb_define_method(rbnng_SocketSurveyor0Class, "get_opt_int", socket_get_opt_int, 1);
 }

@@ -32,5 +32,7 @@ extern VALUE socket_get_msg(VALUE);
 extern VALUE socket_send_msg(VALUE, VALUE);
 extern VALUE socket_dial(VALUE, VALUE);
 extern VALUE socket_listen(VALUE, VALUE);
+extern VALUE socket_get_opt_int(VALUE, VALUE);
+
 
 #endif

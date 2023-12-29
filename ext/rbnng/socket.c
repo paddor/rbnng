@@ -128,3 +128,21 @@ socket_listen(VALUE self, VALUE url)
 
   return Qnil;
 }
+
+VALUE
+socket_get_opt_int(VALUE self, VALUE opt)
+{
+  Check_Type(opt, T_STRING);
+  RbnngSocket* p_rbnngSocket;
+  Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
+
+  /* int nng_socket_get_int(nng_socket s, const char *opt, int *ivalp); */
+  int rv;
+  int val;
+  if ((rv = nng_socket_get_int(p_rbnngSocket->socket, StringValueCStr(opt), &val)) !=
+      0) {
+    raise_error(rv);
+  }
+
+  return INT2NUM(val);
+}
