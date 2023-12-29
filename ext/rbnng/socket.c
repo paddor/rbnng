@@ -29,11 +29,11 @@ socket_get_msg_blocking(RbnngSocket* p_rbnngSocket)
   nng_msg* p_msg = NULL;
   int rv;
   if ((rv = nng_recvmsg(p_rbnngSocket->socket, &p_msg, 0)) != 0) {
-    return rv;
+    return (void*)rv;
   }
 
   p_rbnngSocket->p_getMsgResult = p_msg;
-  return 0;
+  return (void*)0;
 }
 
 VALUE
@@ -42,8 +42,8 @@ socket_get_msg(VALUE self)
   RbnngSocket* p_rbnngSocket;
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
 
-  int rv =
-    rb_thread_call_without_gvl(socket_get_msg_blocking, p_rbnngSocket, 0, 0);
+  int rv = (int) rb_thread_call_without_gvl(socket_get_msg_blocking,
+      p_rbnngSocket, 0, 0);
 
   if (rv == 0) {
     RbnngMsg* p_newMsg;
@@ -66,22 +66,22 @@ socket_send_msg_blocking(void* data)
   int rv;
   nng_msg* p_msg;
   if ((rv = nng_msg_alloc(&p_msg, 0)) != 0) {
-    return rv;
+    return (void*)rv;
   }
 
   rv = nng_msg_append(p_msg,
                       StringValuePtr(p_sendMsgReq->nextMsg),
                       RSTRING_LEN(p_sendMsgReq->nextMsg));
   if (rv != 0) {
-    return rv;
+    return (void*)rv;
   }
 
   // nng_sendmsg takes ownership of p_msg, so no need to free it afterwards.
   if ((rv = nng_sendmsg(p_rbnngSocket->socket, p_msg, 0)) != 0) {
-    return rv;
+    return (void*)rv;
   }
 
-  return 0;
+  return (void*)0;
 }
 
 VALUE
@@ -92,11 +92,13 @@ socket_send_msg(VALUE self, VALUE rb_strMsg)
     .socketObj = self,
     .nextMsg = rb_strMsg,
   };
-  int rv =
-    rb_thread_call_without_gvl(socket_send_msg_blocking, &sendMsgReq, 0, 0);
+  int rv = (int) rb_thread_call_without_gvl(socket_send_msg_blocking,
+      &sendMsgReq, 0, 0);
   if (rv != 0) {
     raise_error(rv);
   }
+
+  return Qnil;
 }
 
 VALUE
@@ -123,4 +125,6 @@ socket_listen(VALUE self, VALUE url)
       0) {
     raise_error(rv);
   }
+
+  return Qnil;
 }
