@@ -42,8 +42,8 @@ socket_get_msg(VALUE self)
   RbnngSocket* p_rbnngSocket;
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
 
-  int rv = (int) rb_thread_call_without_gvl(socket_get_msg_blocking,
-      p_rbnngSocket, 0, 0);
+  int rv = (int) rb_thread_call_without_gvl(socket_get_msg_blocking, p_rbnngSocket, 0, 0);
+  /* int rv = (int) socket_get_msg_blocking(p_rbnngSocket); */
 
   if (rv == 0) {
     RbnngMsg* p_newMsg;
@@ -65,13 +65,23 @@ socket_send_msg_blocking(void* data)
   Data_Get_Struct(p_sendMsgReq->socketObj, RbnngSocket, p_rbnngSocket);
   int rv;
   nng_msg* p_msg;
+
   if ((rv = nng_msg_alloc(&p_msg, 0)) != 0) {
     return (void*)rv;
   }
 
+  if (RB_TEST(p_sendMsgReq->nextMsgHeader)) {
+    rv = nng_msg_header_append(p_msg,
+        StringValuePtr(p_sendMsgReq->nextMsgHeader),
+        RSTRING_LEN(p_sendMsgReq->nextMsgHeader));
+    if (rv != 0) {
+      return (void*)rv;
+    }
+  }
+
   rv = nng_msg_append(p_msg,
-                      StringValuePtr(p_sendMsgReq->nextMsg),
-                      RSTRING_LEN(p_sendMsgReq->nextMsg));
+      StringValuePtr(p_sendMsgReq->nextMsgBody),
+      RSTRING_LEN(p_sendMsgReq->nextMsgBody));
   if (rv != 0) {
     return (void*)rv;
   }
@@ -90,10 +100,31 @@ socket_send_msg(VALUE self, VALUE rb_strMsg)
   Check_Type(rb_strMsg, T_STRING);
   RbnngSendMsgReq sendMsgReq = {
     .socketObj = self,
-    .nextMsg = rb_strMsg,
+    .nextMsgBody = rb_strMsg,
   };
   int rv = (int) rb_thread_call_without_gvl(socket_send_msg_blocking,
       &sendMsgReq, 0, 0);
+  /* int rv = (int) socket_send_msg_blocking(&sendMsgReq); */
+  if (rv != 0) {
+    raise_error(rv);
+  }
+
+  return Qnil;
+}
+
+VALUE
+socket_send_msg_raw(VALUE self, VALUE rb_strHeader, VALUE rb_strBody)
+{
+  Check_Type(rb_strHeader, T_STRING);
+  Check_Type(rb_strBody, T_STRING);
+  RbnngSendMsgReq sendMsgReq = {
+    .socketObj = self,
+    .nextMsgBody = rb_strBody,
+    .nextMsgHeader = rb_strHeader,
+  };
+  int rv = (int) rb_thread_call_without_gvl(socket_send_msg_blocking,
+      &sendMsgReq, 0, 0);
+  /* int rv = (int) socket_send_msg_blocking(&sendMsgReq); */
   if (rv != 0) {
     raise_error(rv);
   }
@@ -107,6 +138,7 @@ socket_dial(VALUE self, VALUE url)
   Check_Type(url, T_STRING);
   RbnngSocket* p_rbnngSocket;
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
+
   int rv;
   if ((rv = nng_dial(p_rbnngSocket->socket, StringValueCStr(url), 0, 0)) != 0) {
     raise_error(rv);
@@ -136,7 +168,6 @@ socket_get_opt_int(VALUE self, VALUE opt)
   RbnngSocket* p_rbnngSocket;
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
 
-  /* int nng_socket_get_int(nng_socket s, const char *opt, int *ivalp); */
   int rv;
   int val;
   if ((rv = nng_socket_get_int(p_rbnngSocket->socket, StringValueCStr(opt), &val)) !=

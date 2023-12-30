@@ -9,19 +9,6 @@
 #include <ruby.h>
 #include <ruby/thread.h>
 
-static VALUE
-socket_rep0_listen(VALUE self, VALUE url)
-{
-  Check_Type(url, T_STRING);
-  int rv;
-  RbnngSocket* p_rbnngSocket;
-  Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
-  if ((rv = nng_listen(p_rbnngSocket->socket, StringValueCStr(url), NULL, 0)) !=
-      0) {
-    raise_error(rv);
-  }
-}
-
 void*
 rep0_get_msg_blocking(RbnngSocket* p_rbnngSocket)
 {
@@ -51,6 +38,8 @@ socket_rep0_get_msg(VALUE self)
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
   int rv =
     rb_thread_call_without_gvl(rep0_get_msg_blocking, p_rbnngSocket, 0, 0);
+  /* int rv = */
+    /* rep0_get_msg_blocking(p_rbnngSocket); */
 
   if (rv == 0) {
     RbnngMsg* p_newMsg;
@@ -84,8 +73,8 @@ rep0_send_msg_blocking(void* data)
 
   nng_msg_clear(p_msg);
   rv = nng_msg_append(p_msg,
-                      StringValuePtr(p_sendMsgReq->nextMsg),
-                      RSTRING_LEN(p_sendMsgReq->nextMsg));
+                      StringValuePtr(p_sendMsgReq->nextMsgBody),
+                      RSTRING_LEN(p_sendMsgReq->nextMsgBody));
   if (rv != 0) {
     return (void*)rv;
   }
@@ -109,10 +98,12 @@ socket_rep0_send_msg(VALUE self, VALUE rb_strMsg)
 
   RbnngSendMsgReq sendMsgReq = {
     .socketObj = self,
-    .nextMsg = rb_strMsg,
+    .nextMsgBody = rb_strMsg,
   };
   int rv =
     rb_thread_call_without_gvl(rep0_send_msg_blocking, &sendMsgReq, 0, 0);
+  /* int rv = */
+    /* rep0_send_msg_blocking(&sendMsgReq); */
   if (rv != 0) {
     raise_error(rv);
   }
@@ -120,8 +111,9 @@ socket_rep0_send_msg(VALUE self, VALUE rb_strMsg)
   return Qnil;
 }
 
+
 static VALUE
-socket_rep0_initialize(VALUE self)
+socket_rep0_open(VALUE self)
 {
   RbnngSocket* p_rbnngSocket;
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
@@ -137,6 +129,19 @@ socket_rep0_initialize(VALUE self)
   return self;
 }
 
+static VALUE
+socket_rep0_open_raw(VALUE self)
+{
+  RbnngSocket* p_rbnngSocket;
+  Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
+  int rv;
+  if ((rv = nng_rep0_open_raw(&p_rbnngSocket->socket)) != 0) {
+    raise_error(rv);
+  }
+
+  return self;
+}
+
 void
 rbnng_rep0_Init(VALUE nng_module)
 {
@@ -144,10 +149,14 @@ rbnng_rep0_Init(VALUE nng_module)
   VALUE rbnng_SocketRep0Class =
     rb_define_class_under(rbnng_SocketModule, "Rep0", rb_cObject);
   rb_define_alloc_func(rbnng_SocketRep0Class, socket_alloc);
-  rb_define_method(
-    rbnng_SocketRep0Class, "initialize", socket_rep0_initialize, 0);
+  rb_define_private_method(
+    rbnng_SocketRep0Class, "_open", socket_rep0_open, 0);
+  rb_define_private_method(
+    rbnng_SocketRep0Class, "_open_raw", socket_rep0_open_raw, 0);
   rb_define_method(rbnng_SocketRep0Class, "get_msg", socket_rep0_get_msg, 0);
+  rb_define_method(rbnng_SocketRep0Class, "get_msg_raw", socket_get_msg, 0);
   rb_define_method(rbnng_SocketRep0Class, "send_msg", socket_rep0_send_msg, 1);
-  rb_define_method(rbnng_SocketRep0Class, "listen", socket_rep0_listen, 1);
+  rb_define_method(rbnng_SocketRep0Class, "send_msg_raw", socket_send_msg_raw, 2);
+  rb_define_method(rbnng_SocketRep0Class, "listen", socket_listen, 1);
   rb_define_method(rbnng_SocketRep0Class, "get_opt_int", socket_get_opt_int, 1);
 }
