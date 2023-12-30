@@ -150,13 +150,17 @@ rbnng_rep0_Init(VALUE nng_module)
     rb_define_class_under(rbnng_SocketModule, "Rep0", rb_cObject);
   rb_define_alloc_func(rbnng_SocketRep0Class, socket_alloc);
   rb_define_private_method(
-    rbnng_SocketRep0Class, "_open", socket_rep0_open, 0);
-  rb_define_private_method(
-    rbnng_SocketRep0Class, "_open_raw", socket_rep0_open_raw, 0);
+    rbnng_SocketRep0Class, "initialize", socket_rep0_open, 0);
   rb_define_method(rbnng_SocketRep0Class, "get_msg", socket_rep0_get_msg, 0);
-  rb_define_method(rbnng_SocketRep0Class, "get_msg_raw", socket_get_msg, 0);
   rb_define_method(rbnng_SocketRep0Class, "send_msg", socket_rep0_send_msg, 1);
-  rb_define_method(rbnng_SocketRep0Class, "send_msg_raw", socket_send_msg_raw, 2);
   rb_define_method(rbnng_SocketRep0Class, "listen", socket_listen, 1);
   rb_define_method(rbnng_SocketRep0Class, "get_opt_int", socket_get_opt_int, 1);
+
+  // Rep0::Raw < Rep0
+  VALUE rbnng_SocketRep0RawClass =
+    rb_define_class_under(rbnng_SocketRep0Class, "Raw", rbnng_SocketRep0Class);
+  rb_define_private_method(
+    rbnng_SocketRep0RawClass, "initialize", socket_rep0_open_raw, 0);
+  rb_define_method(rbnng_SocketRep0RawClass, "get_msg", socket_get_msg, 0);
+  rb_define_method(rbnng_SocketRep0RawClass, "send_msg", socket_send_msg_raw, 2);
 }
