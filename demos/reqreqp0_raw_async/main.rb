@@ -5,7 +5,6 @@ require 'nng'
 ADDR = "ipc:///tmp/reqrep.ipc"
 
 def start_client(i)
-  puts "#start_client(#{i})"
   sock = NNG::Socket::Req0::Raw.new
   sock.dial(ADDR)
 
@@ -21,7 +20,6 @@ def start_client(i)
 end
 
 def start_server(total_clients)
-  puts "#start_server(#{total_clients})"
   sock = NNG::Socket::Rep0::Raw.new
   sock.listen(ADDR)
   running_set = Set.new

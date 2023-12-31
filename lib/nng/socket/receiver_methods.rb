@@ -21,7 +21,6 @@ module NNG
 
       def get_msg
         if Fiber.scheduler
-          puts "#{self.class}#get_msg using Fiber.scheduler"
           @recv_io ||= ::IO.for_fd recv_fd
           @recv_io.wait_readable # TODO: timeout
         end
