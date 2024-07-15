@@ -5,6 +5,7 @@
 #include "msg.h"
 #include "rbnng.h"
 #include "socket.h"
+#include "sockets.h"
 #include <nng/protocol/survey0/survey.h>
 #include <ruby.h>
 
@@ -23,11 +24,10 @@ socket_surveyor0_initialize(VALUE self)
 }
 
 void
-rbnng_surveyor0_Init(VALUE nng_module)
+rbnng_surveyor0_Init(void)
 {
-  VALUE rbnng_SocketModule = rb_define_module_under(nng_module, "Socket");
   VALUE rbnng_SocketSurveyor0Class =
-    rb_define_class_under(rbnng_SocketModule, "Surveyor0", rb_cObject);
+    rb_define_class_under(rbnng_SocketModule, "Surveyor0", rbnng_SocketBaseClass);
   rb_define_alloc_func(rbnng_SocketSurveyor0Class, socket_alloc);
   rb_define_method(
     rbnng_SocketSurveyor0Class, "initialize", socket_surveyor0_initialize, 0);

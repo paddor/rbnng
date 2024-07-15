@@ -8,5 +8,7 @@
 
 extern void
 raise_error(int);
+extern void
+rbnng_exceptions_Init(void);
 
 #endif

@@ -5,9 +5,12 @@
 #include <nng/nng.h>
 #include <ruby.h>
 
-#include "msg.h"
 #include "rbnng.h"
-#include "socket.h"
+#include "exceptions.h"
+#include "msg.h"
+#include "sockets.h"
+
+VALUE rbnng_Module = Qnil;
 
 static VALUE
 library_version(VALUE self_)
@@ -21,18 +24,9 @@ library_version(VALUE self_)
 void
 Init_rbnng(void)
 {
-  VALUE nng_module = rb_define_module("NNG");
-  rb_define_singleton_method(nng_module, "nng_version", library_version, 0);
-  rbnng_exceptions_Init(nng_module);
-  rbnng_msg_Init(nng_module);
-  rbnng_rep0_Init(nng_module);
-  rbnng_req0_Init(nng_module);
-  rbnng_pub0_Init(nng_module);
-  rbnng_sub0_Init(nng_module);
-  rbnng_pair_Init(nng_module);
-  rbnng_bus0_Init(nng_module);
-  rbnng_surveyor0_Init(nng_module);
-  rbnng_respondent0_Init(nng_module);
-  rbnng_push0_Init(nng_module);
-  rbnng_pull0_Init(nng_module);
+  rbnng_Module = rb_define_module("NNG");
+  rb_define_singleton_method(rbnng_Module, "nng_version", library_version, 0);
+  rbnng_exceptions_Init();
+  rbnng_msg_Init();
+  rbnng_sockets_Init();
 }

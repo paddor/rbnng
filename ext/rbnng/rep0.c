@@ -5,6 +5,7 @@
 #include "msg.h"
 #include "rbnng.h"
 #include "socket.h"
+#include "sockets.h"
 #include <nng/protocol/reqrep0/rep.h>
 #include <ruby.h>
 #include <ruby/thread.h>
@@ -138,11 +139,10 @@ socket_rep0_initialize(VALUE self)
 }
 
 void
-rbnng_rep0_Init(VALUE nng_module)
+rbnng_rep0_Init(void)
 {
-  VALUE rbnng_SocketModule = rb_define_module_under(nng_module, "Socket");
   VALUE rbnng_SocketRep0Class =
-    rb_define_class_under(rbnng_SocketModule, "Rep0", rb_cObject);
+    rb_define_class_under(rbnng_SocketModule, "Rep0", rbnng_SocketBaseClass);
   rb_define_alloc_func(rbnng_SocketRep0Class, socket_alloc);
   rb_define_method(
     rbnng_SocketRep0Class, "initialize", socket_rep0_initialize, 0);
