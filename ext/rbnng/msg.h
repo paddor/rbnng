@@ -17,6 +17,6 @@ typedef struct
 } RbnngMsg;
 
 extern void
-rbnng_msg_Init(VALUE nng_module);
+rbnng_msg_Init(void);
 
 #endif
