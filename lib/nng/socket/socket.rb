@@ -1,5 +1,6 @@
 require_relative 'sender_methods'
 require_relative 'receiver_methods'
+require_relative 'base'
 require_relative 'bus'
 require_relative 'pair'
 require_relative 'pub'
