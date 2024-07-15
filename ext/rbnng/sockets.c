@@ -18,6 +18,7 @@ rbnng_sockets_Init(void)
   rbnng_SocketModule = rb_define_module_under(rbnng_Module, "Socket");
   rbnng_SocketBaseClass = rb_define_class_under(rbnng_SocketModule,
       "Base", rb_cObject);
+  rb_define_method(rbnng_SocketBaseClass, "get_opt_int", socket_get_opt_int, 1);
 
   rbnng_rep0_Init();
   rbnng_req0_Init();
