@@ -2,6 +2,7 @@
  * Copyright (c) 2021 Adib Saad
  *
  */
+#include "rbnng.h"
 #include <nng/nng.h>
 #include <ruby.h>
 
@@ -41,9 +42,9 @@ VALUE rbnng_eConnectionShutdown = Qnil;
 VALUE rbnng_eInternalErrorDetected = Qnil;
 
 void
-rbnng_exceptions_Init(VALUE nng_module)
+rbnng_exceptions_Init(void)
 {
-  VALUE errorModule = rb_define_module_under(nng_module, "Error");
+  VALUE errorModule = rb_define_module_under(rbnng_Module, "Error");
   rbnng_eBase = rb_define_class_under(errorModule, "Error", rb_eRuntimeError);
 
   rbnng_eInterrupted =

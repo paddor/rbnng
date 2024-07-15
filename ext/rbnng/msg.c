@@ -3,6 +3,7 @@
  *
  */
 #include "msg.h"
+#include "rbnng.h"
 #include <nng/protocol/reqrep0/rep.h>
 #include <ruby.h>
 #include <signal.h>
@@ -52,9 +53,9 @@ msg_header(VALUE self)
 }
 
 void
-rbnng_msg_Init(VALUE nng_module)
+rbnng_msg_Init(void)
 {
-  rbnng_MsgClass = rb_define_class_under(nng_module, "Msg", rb_cObject);
+  rbnng_MsgClass = rb_define_class_under(rbnng_Module, "Msg", rb_cObject);
   rb_define_alloc_func(rbnng_MsgClass, msg_alloc);
   rb_define_method(rbnng_MsgClass, "body", msg_body, 0);
   rb_define_method(rbnng_MsgClass, "header", msg_header, 0);

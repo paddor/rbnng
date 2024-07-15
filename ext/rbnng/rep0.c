@@ -5,6 +5,7 @@
 #include "msg.h"
 #include "rbnng.h"
 #include "socket.h"
+#include "sockets.h"
 #include <nng/protocol/reqrep0/rep.h>
 #include <ruby.h>
 #include <ruby/thread.h>
@@ -28,14 +29,14 @@ rep0_get_msg_blocking(RbnngSocket* p_rbnngSocket)
   nng_aio* p_aio;
   int rv;
   if ((rv = nng_aio_alloc(&p_aio, 0, 0)) != 0) {
-    return rv;
+    return (void*) rv;
   }
 
   nng_ctx_recv(p_rbnngSocket->ctx, p_aio);
   nng_aio_wait(p_aio);
 
   if ((rv = nng_aio_result(p_aio)) != 0) {
-    return rv;
+    return (void*) rv;
   }
 
   nng_msg* p_msg = nng_aio_get_msg(p_aio);
@@ -49,8 +50,8 @@ socket_rep0_get_msg(VALUE self)
 {
   RbnngSocket* p_rbnngSocket;
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
-  int rv =
-    rb_thread_call_without_gvl(rep0_get_msg_blocking, p_rbnngSocket, 0, 0);
+  int rv = (int) rb_thread_call_without_gvl(rep0_get_msg_blocking,
+      p_rbnngSocket, 0, 0);
 
   if (rv == 0) {
     RbnngMsg* p_newMsg;
@@ -74,12 +75,12 @@ rep0_send_msg_blocking(void* data)
   nng_aio* p_aio;
   int rv;
   if ((rv = nng_aio_alloc(&p_aio, 0, 0)) != 0) {
-    return rv;
+    return (void*) rv;
   }
 
   nng_msg* p_msg;
   if ((rv = nng_msg_alloc(&p_msg, 0)) != 0) {
-    return rv;
+    return (void*) rv;
   }
 
   nng_msg_clear(p_msg);
@@ -87,7 +88,7 @@ rep0_send_msg_blocking(void* data)
                       StringValuePtr(p_sendMsgReq->nextMsg),
                       RSTRING_LEN(p_sendMsgReq->nextMsg));
   if (rv != 0) {
-    return rv;
+    return (void*) rv;
   }
 
   nng_aio_set_msg(p_aio, p_msg);
@@ -95,7 +96,7 @@ rep0_send_msg_blocking(void* data)
   nng_aio_wait(p_aio);
 
   if ((rv = nng_aio_result(p_aio)) != 0) {
-    return rv;
+    return (void*) rv;
   }
 
   nng_aio_free(p_aio);
@@ -111,11 +112,13 @@ socket_rep0_send_msg(VALUE self, VALUE rb_strMsg)
     .socketObj = self,
     .nextMsg = rb_strMsg,
   };
-  int rv =
-    rb_thread_call_without_gvl(rep0_send_msg_blocking, &sendMsgReq, 0, 0);
+  int rv = (int) rb_thread_call_without_gvl(rep0_send_msg_blocking,
+      &sendMsgReq, 0, 0);
   if (rv != 0) {
     raise_error(rv);
   }
+
+  return Qnil;
 }
 
 static VALUE
@@ -136,11 +139,10 @@ socket_rep0_initialize(VALUE self)
 }
 
 void
-rbnng_rep0_Init(VALUE nng_module)
+rbnng_rep0_Init(void)
 {
-  VALUE rbnng_SocketModule = rb_define_module_under(nng_module, "Socket");
   VALUE rbnng_SocketRep0Class =
-    rb_define_class_under(rbnng_SocketModule, "Rep0", rb_cObject);
+    rb_define_class_under(rbnng_SocketModule, "Rep0", rbnng_SocketBaseClass);
   rb_define_alloc_func(rbnng_SocketRep0Class, socket_alloc);
   rb_define_method(
     rbnng_SocketRep0Class, "initialize", socket_rep0_initialize, 0);
