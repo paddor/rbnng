@@ -5,6 +5,7 @@
 #include "msg.h"
 #include "rbnng.h"
 #include "socket.h"
+#include "sockets.h"
 #include <nng/protocol/bus0/bus.h>
 #include <ruby.h>
 
@@ -28,11 +29,10 @@ socket_bus0_initialize(VALUE self)
 }
 
 void
-rbnng_bus0_Init(VALUE nng_module)
+rbnng_bus0_Init(void)
 {
-  VALUE rbnng_SocketModule = rb_define_module_under(nng_module, "Socket");
-  VALUE rbnng_SocketBus0Class =
-    rb_define_class_under(rbnng_SocketModule, "Bus0", rb_cObject);
+  VALUE rbnng_SocketBus0Class = rb_define_class_under(rbnng_SocketModule,
+      "Bus0", rbnng_SocketBaseClass);
   rb_define_alloc_func(rbnng_SocketBus0Class, socket_alloc);
   rb_define_method(
     rbnng_SocketBus0Class, "initialize", socket_bus0_initialize, 0);

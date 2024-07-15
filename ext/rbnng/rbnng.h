@@ -7,27 +7,10 @@
 #define RBNNG_H
 
 #include "exceptions.h"
+#include "sockets.h"
 #include <ruby.h>
 
-extern void
-rbnng_rep0_Init(VALUE nng_module);
-extern void
-rbnng_req0_Init(VALUE nng_module);
-extern void
-rbnng_pair_Init(VALUE nng_module);
-extern void
-rbnng_pub0_Init(VALUE nng_module);
-extern void
-rbnng_sub0_Init(VALUE nng_module);
-extern void
-rbnng_bus0_Init(VALUE nng_module);
-extern void
-rbnng_surveyor0_Init(VALUE nng_module);
-extern void
-rbnng_respondent0_Init(VALUE nng_module);
-extern void
-rbnng_push0_Init(VALUE nng_module);
-extern void
-rbnng_pull0_Init(VALUE nng_module);
+extern VALUE rbnng_Module;
+
 
 #endif

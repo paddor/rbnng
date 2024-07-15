@@ -124,3 +124,66 @@ socket_listen(VALUE self, VALUE url)
     raise_error(rv);
   }
 }
+
+VALUE
+socket_get_opt_int(VALUE self, VALUE opt)
+{
+  Check_Type(opt, T_STRING);
+  RbnngSocket* p_rbnngSocket;
+  Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
+
+  /* int nng_socket_get_int(nng_socket s, const char *opt, int *ivalp); */
+  int rv;
+  int val;
+  if ((rv = nng_socket_get_int(p_rbnngSocket->socket, StringValueCStr(opt), &val)) !=
+      0) {
+    raise_error(rv);
+  }
+
+  return INT2NUM(val);
+}
+
+VALUE
+socket_get_opt_ms(VALUE self, VALUE opt)
+{
+  Check_Type(opt, T_STRING);
+  RbnngSocket* p_rbnngSocket;
+  Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
+
+  int rv;
+  nng_duration val;
+  if ((rv = nng_socket_get_ms(p_rbnngSocket->socket, StringValueCStr(opt), &val)) !=
+      0) {
+    raise_error(rv);
+  }
+
+  if (val == NNG_DURATION_INFINITE) {
+    return Qnil;
+  }
+
+  return INT2NUM(val);
+}
+
+VALUE
+socket_set_opt_ms(VALUE self, VALUE opt, VALUE val)
+{
+  Check_Type(opt, T_STRING);
+  RbnngSocket* p_rbnngSocket;
+  Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
+
+  int rv;
+  nng_duration duration = NNG_DURATION_INFINITE;
+
+  if (RTEST(val))
+  {
+    duration = NUM2INT(val);
+  }
+
+  rv = nng_socket_set_ms(p_rbnngSocket->socket, StringValueCStr(opt), duration);
+
+  if (rv != 0) {
+    raise_error(rv);
+  }
+
+  return Qnil;
+}

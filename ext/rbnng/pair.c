@@ -5,6 +5,7 @@
 #include "msg.h"
 #include "rbnng.h"
 #include "socket.h"
+#include "sockets.h"
 #include <nng/protocol/pair0/pair.h>
 #include <nng/protocol/pair1/pair.h>
 #include <ruby.h>
@@ -39,12 +40,10 @@ socket_pair1_initialize(VALUE self)
 }
 
 void
-rbnng_pair_Init(VALUE nng_module)
+rbnng_pair_Init(void)
 {
-  VALUE rbnng_SocketModule = rb_define_module_under(nng_module, "Socket");
-
   VALUE rbnng_SocketPair1Class =
-    rb_define_class_under(rbnng_SocketModule, "Pair1", rb_cObject);
+    rb_define_class_under(rbnng_SocketModule, "Pair1", rbnng_SocketBaseClass);
   rb_define_alloc_func(rbnng_SocketPair1Class, socket_alloc);
   rb_define_method(
     rbnng_SocketPair1Class, "initialize", socket_pair1_initialize, 0);
@@ -54,7 +53,7 @@ rbnng_pair_Init(VALUE nng_module)
   rb_define_method(rbnng_SocketPair1Class, "dial", socket_dial, 1);
 
   VALUE rbnng_SocketPair0Class =
-    rb_define_class_under(rbnng_SocketModule, "Pair0", rb_cObject);
+    rb_define_class_under(rbnng_SocketModule, "Pair0", rbnng_SocketBaseClass);
   rb_define_alloc_func(rbnng_SocketPair0Class, socket_alloc);
   rb_define_method(
     rbnng_SocketPair0Class, "initialize", socket_pair0_initialize, 0);
