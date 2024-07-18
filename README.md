@@ -33,6 +33,7 @@ Examples can be found under the [demos](demos/) directory.
 
    -  [x] Better error handling
    -  [ ] Add configuration options
+   -  [ ] RAW Req0/Rep0 sockets for async communication
 
 -  Protocols
    -  [x] Req0/Rep0
