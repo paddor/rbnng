@@ -26,6 +26,7 @@ module NNG
 
 
       module Async
+        # TODO: take Message object
         def send_msg(str)
           super if wait_writable
         end
