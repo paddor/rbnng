@@ -24,6 +24,15 @@ socket_req0_initialize(VALUE self)
   return self;
 }
 
+
+static VALUE
+socket_req0_initialize_raw(VALUE self)
+{
+  // TODO: initialize raw socket
+
+  return self;
+}
+
 void
 rbnng_req0_Init(void)
 {
@@ -31,7 +40,9 @@ rbnng_req0_Init(void)
     rb_define_class_under(rbnng_SocketModule, "Req0", rbnng_SocketBaseClass);
   rb_define_alloc_func(rbnng_SocketReq0Class, socket_alloc);
   rb_define_method(
-    rbnng_SocketReq0Class, "initialize", socket_req0_initialize, 0);
+    rbnng_SocketReq0Class, "_initialize", socket_req0_initialize, 0);
+  rb_define_method(
+    rbnng_SocketReq0Class, "_initialize_raw", socket_req0_initialize_raw, 0);
   rb_define_method(rbnng_SocketReq0Class, "get_msg", socket_get_msg, 0);
   rb_define_method(rbnng_SocketReq0Class, "send_msg", socket_send_msg, 1);
   rb_define_method(rbnng_SocketReq0Class, "dial", socket_dial, 1);

@@ -55,7 +55,7 @@ msg_header(VALUE self)
 void
 rbnng_msg_Init(void)
 {
-  rbnng_MsgClass = rb_define_class_under(rbnng_Module, "Msg", rb_cObject);
+  rbnng_MsgClass = rb_define_class_under(rbnng_Module, "Msg", rb_cObject); // TODO: rename to Message
   rb_define_alloc_func(rbnng_MsgClass, msg_alloc);
   rb_define_method(rbnng_MsgClass, "body", msg_body, 0);
   rb_define_method(rbnng_MsgClass, "header", msg_header, 0);

@@ -138,6 +138,14 @@ socket_rep0_initialize(VALUE self)
   return self;
 }
 
+static VALUE
+socket_rep0_initialize_raw(VALUE self)
+{
+  // TODO: initialize raw socket
+
+  return self;
+}
+
 void
 rbnng_rep0_Init(void)
 {
@@ -145,7 +153,9 @@ rbnng_rep0_Init(void)
     rb_define_class_under(rbnng_SocketModule, "Rep0", rbnng_SocketBaseClass);
   rb_define_alloc_func(rbnng_SocketRep0Class, socket_alloc);
   rb_define_method(
-    rbnng_SocketRep0Class, "initialize", socket_rep0_initialize, 0);
+    rbnng_SocketRep0Class, "_initialize", socket_rep0_initialize, 0);
+  rb_define_method(
+    rbnng_SocketRep0Class, "_initialize_raw", socket_rep0_initialize_raw, 0);
   rb_define_method(rbnng_SocketRep0Class, "get_msg", socket_rep0_get_msg, 0);
   rb_define_method(rbnng_SocketRep0Class, "send_msg", socket_rep0_send_msg, 1);
   rb_define_method(rbnng_SocketRep0Class, "listen", socket_rep0_listen, 1);
