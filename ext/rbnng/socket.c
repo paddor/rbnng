@@ -100,6 +100,8 @@ socket_send_msg(VALUE self, VALUE rb_strMsg)
   if (rv != 0) {
     raise_error(rv);
   }
+
+  return Qnil;
 }
 
 VALUE
@@ -109,9 +111,12 @@ socket_dial(VALUE self, VALUE url)
   RbnngSocket* p_rbnngSocket;
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
   int rv;
+
   if ((rv = nng_dial(p_rbnngSocket->socket, StringValueCStr(url), 0, 0)) != 0) {
     raise_error(rv);
   }
+
+  return Qnil;
 }
 
 VALUE
@@ -126,6 +131,8 @@ socket_listen(VALUE self, VALUE url)
       0) {
     raise_error(rv);
   }
+
+  return Qnil;
 }
 
 VALUE
