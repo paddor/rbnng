@@ -42,6 +42,7 @@ socket_get_msg(VALUE self)
   RbnngSocket* p_rbnngSocket;
   Data_Get_Struct(self, RbnngSocket, p_rbnngSocket);
 
+  // TODO: avoid this magic. we only read when socket is readable
   int rv =
     rb_thread_call_without_gvl(socket_get_msg_blocking, p_rbnngSocket, 0, 0);
 
@@ -92,6 +93,8 @@ socket_send_msg(VALUE self, VALUE rb_strMsg)
     .socketObj = self,
     .nextMsg = rb_strMsg,
   };
+
+  // TODO: avoid this magic. we only send when socket is writable
   int rv =
     rb_thread_call_without_gvl(socket_send_msg_blocking, &sendMsgReq, 0, 0);
   if (rv != 0) {
