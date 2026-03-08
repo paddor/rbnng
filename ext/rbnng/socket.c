@@ -119,6 +119,30 @@ socket_dial(VALUE self, VALUE url)
     return Qnil;
 }
 
+/* _listen_tls(url, cert_pem, key_pem, ca_pem, verify, server_name) */
+static VALUE
+socket_listen_tls(VALUE self, VALUE url, VALUE cert_pem, VALUE key_pem,
+                  VALUE ca_pem, VALUE verify, VALUE server_name)
+{
+    rbnng_socket_t *s = socket_get(self);
+    rbnng_tls_listen(s->socket, StringValueCStr(url),
+                     cert_pem, key_pem, ca_pem,
+                     RTEST(verify), server_name);
+    return Qnil;
+}
+
+/* _dial_tls(url, cert_pem, key_pem, ca_pem, verify, server_name) */
+static VALUE
+socket_dial_tls(VALUE self, VALUE url, VALUE cert_pem, VALUE key_pem,
+                VALUE ca_pem, VALUE verify, VALUE server_name)
+{
+    rbnng_socket_t *s = socket_get(self);
+    rbnng_tls_dial(s->socket, StringValueCStr(url),
+                   cert_pem, key_pem, ca_pem,
+                   RTEST(verify), server_name);
+    return Qnil;
+}
+
 static VALUE
 socket_receive(VALUE self)
 {
@@ -419,6 +443,8 @@ rbnng_socket_init(VALUE nng_module)
     rb_define_method(base, "forward",        socket_forward,        1);
     rb_define_method(base, "recv_fd",        socket_recv_fd,        0);
     rb_define_method(base, "send_fd",        socket_send_fd,        0);
+    rb_define_method(base, "_listen_tls",    socket_listen_tls,     6);
+    rb_define_method(base, "_dial_tls",      socket_dial_tls,       6);
     rb_define_method(base, "get_opt_int",    socket_get_opt_int,    1);
     rb_define_method(base, "set_opt_int",    socket_set_opt_int,    2);
     rb_define_method(base, "get_opt_ms",     socket_get_opt_ms,     1);

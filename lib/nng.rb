@@ -3,6 +3,7 @@
 require 'timeout'
 require 'nng/rbnng'
 require 'nng/version'
+require 'nng/tls'
 require 'nng/socket/base'
 require 'nng/socket/readable'
 require 'nng/socket/writable'

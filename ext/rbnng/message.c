@@ -154,6 +154,15 @@ msg_consumed_p(VALUE self)
     return m->msg ? Qfalse : Qtrue;
 }
 
+static VALUE
+msg_pipe(VALUE self)
+{
+    nng_pipe p = nng_msg_get_pipe(msg_ptr(self));
+    if (nng_pipe_id(p) < 0)
+        return Qnil;
+    return rbnng_pipe_wrap(p);
+}
+
 /* ── Init ───────────────────────────────────────────────────────── */
 
 void
@@ -170,4 +179,5 @@ rbnng_msg_init(VALUE nng_module)
     rb_define_method(cMessage, "header=",     msg_set_header,  1);
     rb_define_method(cMessage, "dup",         msg_dup,         0);
     rb_define_method(cMessage, "consumed?",   msg_consumed_p,  0);
+    rb_define_method(cMessage, "pipe",        msg_pipe,        0);
 }

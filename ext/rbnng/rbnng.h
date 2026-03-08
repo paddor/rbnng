@@ -37,4 +37,25 @@ void rbnng_socket_init(VALUE nng_module);
 
 void rbnng_device_init(VALUE nng_module);
 
+/* ── Pipe ──────────────────────────────────────────────────────── */
+
+typedef struct {
+    nng_pipe pipe;
+} rbnng_pipe_t;
+
+extern const rb_data_type_t rbnng_pipe_type;
+
+VALUE rbnng_pipe_wrap(nng_pipe pipe);
+void rbnng_pipe_init(VALUE nng_module);
+
+/* ── TLS helpers (called from socket.c) ────────────────────────── */
+
+void rbnng_tls_listen(nng_socket sock, const char *url,
+                      VALUE cert_pem, VALUE key_pem, VALUE ca_pem,
+                      int verify, VALUE server_name);
+
+void rbnng_tls_dial(nng_socket sock, const char *url,
+                    VALUE cert_pem, VALUE key_pem, VALUE ca_pem,
+                    int verify, VALUE server_name);
+
 #endif
