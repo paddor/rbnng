@@ -25,9 +25,12 @@ jobs:
           cmake -S /tmp/nng -B /tmp/nng/build -DCMAKE_BUILD_TYPE=Release -DNNG_ENABLE_TLS=ON
           cmake --build /tmp/nng/build --parallel
           sudo cmake --install /tmp/nng/build
+          sudo ldconfig
 
       - name: Compile extension
         run: bundle exec rake compile
+        env:
+          PKG_CONFIG_PATH: /usr/local/lib/pkgconfig
 
       - name: Run tests
         run: bundle exec rake test
