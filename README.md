@@ -1,11 +1,10 @@
 # rbnng
 
-Ruby bindings for [nng](https://nng.nanomsg.org/) (nanomsg next generation), a lightweight broker-less messaging library. The extension is written in Rust via [magnus](https://github.com/matsadler/magnus) and [rb-sys](https://github.com/oxidize-rb/rb-sys).
+Ruby bindings for [nng](https://nng.nanomsg.org/) (nanomsg next generation), a lightweight broker-less messaging library.
 
 ## Requirements
 
 - Ruby >= 3.2
-- Rust toolchain (for building the extension)
 - libnng
 
 ## Installation
@@ -68,13 +67,25 @@ Async do |task|
   pub = NNG::Socket::Pub0.new
   pub.listen('ipc:///tmp/pubsub.sock')
 
-  sub = NNG::Socket::Sub0.new
-  sub.dial('ipc:///tmp/pubsub.sock')
-  sleep 0.01  # allow connection to establish
+  # Subscribe to everything (default)
+  all = NNG::Socket::Sub0.new
+  all.dial('ipc:///tmp/pubsub.sock')
 
-  task.async { pub.send('news') }
-  msg = sub.receive
-  puts msg.body  # => "news"
+  # Subscribe only to messages starting with "weather."
+  weather = NNG::Socket::Sub0.new(prefix: 'weather.')
+  weather.dial('ipc:///tmp/pubsub.sock')
+
+  sleep 0.01  # allow connections to establish
+
+  task.async do
+    pub.send('weather.rain')
+    pub.send('sports.goal')
+  end
+
+  puts all.receive.body      # => "weather.rain"
+  puts weather.receive.body  # => "weather.rain"
+  puts all.receive.body      # => "sports.goal"
+  # weather never receives "sports.goal"
 end
 ```
 

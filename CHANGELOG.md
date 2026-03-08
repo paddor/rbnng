@@ -4,7 +4,7 @@
 
 ### Breaking changes
 
-- Rewritten C extension in Rust (via magnus/rb-sys)
+- Rewritten C extension
 - `raw` argument changed from positional bool to keyword (`raw: true`)
 - `NNG::Socket::Base` moved to its own file (`lib/nng/socket/base.rb`)
 
@@ -27,7 +27,7 @@
 - `receive` / `send` raise `Timeout::Error` on timeout
 - Backward-compatible method aliases: `send_msg` -> `send`, `get_msg` -> `receive`
 - `NNG.nng_version` — returns nng library version as a 3-element array via FFI
-- pkg-config support in `build.rs` with fallback to system library path
+- pkg-config support in `extconf.rb` with fallback to system library path
 - Benchmarks for throughput and latency (inproc and TCP)
 - Specs for all socket protocols, raw mode proxy patterns, timeouts, memory management, and socket options
 
