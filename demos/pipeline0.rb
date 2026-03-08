@@ -7,7 +7,7 @@ def start_puller(i)
   puts "[puller] listening at #{addr}"
 
   loop do
-    msg = sock.get_msg
+    msg = sock.receive
     body = msg.body
     break if body == "fin"
     puts "[puller #{i}] got message: \"#{body}\""
@@ -24,13 +24,13 @@ def start_pusher(total_pullers)
   loop_times = (rand * 10).ceil
   puts "[pusher] sending #{loop_times} messages"
   loop_times.times do |i|
-    sock.send_msg("msg-#{i}")
+    sock.send("msg-#{i}")
     sleep 0.1
   end
 
   # Send fin to all pullers
   total_pullers.times do
-    sock.send_msg("fin")
+    sock.send("fin")
   end
 
   puts "[pusher] finished"

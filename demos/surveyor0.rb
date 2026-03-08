@@ -9,10 +9,10 @@ def start_client(i)
   puts "[client #{i}] dialed to #{ADDR}"
 
   loop do
-    msg = sock.get_msg
+    msg = sock.receive
     break if msg.body == "fin"
     puts "[client #{i}] got survey: \"#{msg.body}\""
-    sock.send_msg "response from client-#{i}"
+    sock.send "response from client-#{i}"
   end
 
   puts "[client #{i}] finished"
@@ -28,11 +28,11 @@ def start_server(total_clients)
 
   loop_times.times do |i|
     puts "[server] Sending survey: \"survey-#{i}\""
-    sock.send_msg "survey-#{i}"
+    sock.send "survey-#{i}"
 
     # sleep 1
     loop do
-      msg = sock.get_msg
+      msg = sock.receive
       puts "[server] Got survey response: \"#{msg.body}\""
     rescue NNG::Error::TimedOut => e
       puts "[server] timed out..."
@@ -41,7 +41,7 @@ def start_server(total_clients)
   end
 
   puts "[server] finished"
-  sock.send_msg "fin"
+  sock.send "fin"
 end
 
 def start

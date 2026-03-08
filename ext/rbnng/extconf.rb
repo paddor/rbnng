@@ -1,21 +1,4 @@
-#
-#    Copyright (c) 2021 Adib Saad
-#
-require 'mkmf'
-dir_config('nng')
+require "mkmf"
+require "rb_sys/mkmf"
 
-def header?
-  have_header('nng/nng.h') ||
-    find_header('nng/nng.h', '/opt/local/include', '/usr/local/include', '/usr/include')
-end
-
-def library?
-  have_library('nng', 'nng_fini') ||
-    find_library('nng', 'nng_fini', '/opt/local/lib', '/usr/local/lib', '/usr/lib')
-end
-
-if header? && library?
-  create_makefile("nng/rbnng")
-else
-  raise "Couldn't find nng library. try setting --with-nng-dir=<path> to tell me where it is."
-end
+create_rust_makefile("nng/rbnng")

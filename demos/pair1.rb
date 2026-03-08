@@ -13,9 +13,9 @@ def start_node(node_id, loop_times)
   end
   puts "[#{node_id}] sending #{loop_times} messages"
   loop_times.times do |i|
-    sock.send_msg "message-#{i} from #{node_id}"
+    sock.send "message-#{i} from #{node_id}"
     sleep 1
-    msg = sock.get_msg
+    msg = sock.receive
     puts "[#{node_id}] got message: \"#{msg.body}\""
   end
   puts "[#{node_id}] finished"

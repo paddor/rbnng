@@ -1,0 +1,15 @@
+[package]
+name = "rbnng"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rbnng"
+crate-type = ["cdylib"]
+
+[dependencies]
+magnus = "0.8"
+rb-sys = "0.9"
+
+[build-dependencies]
+pkg-config = "0.3"

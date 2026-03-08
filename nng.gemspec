@@ -9,13 +9,16 @@ Gem::Specification.new do |s|
   s.licenses         = ['MIT']
   s.summary          = 'Ruby bindings for nng (nanomsg-ng).'
   s.homepage         = 'https://github.com/adibsaad/rbnng'
-  s.files            = Dir['./ext/**/*.c'] +
-                       Dir['./ext/**/*.h'] +
+  s.files            = Dir['./ext/**/*.{rs,toml}'] +
                        Dir['./lib/**/*.rb']
   s.extensions       = %w[ext/rbnng/extconf.rb]
-  s.require_paths    = %w[ext lib]
-  
+  s.require_paths    = %w[lib]
+
   s.add_development_dependency "bundler"
   s.add_development_dependency "rake"
   s.add_development_dependency "rake-compiler"
+  s.add_development_dependency "rb_sys"
+  s.add_development_dependency "minitest"
+  s.add_development_dependency "async"
+  s.add_development_dependency "benchmark"
 end
