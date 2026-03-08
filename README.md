@@ -239,7 +239,7 @@ All protocols support `raw: true` for raw mode.
 ```sh
 bundle install
 bundle exec rake compile
-bundle exec rake spec
+bundle exec rake test
 ```
 
 ## License

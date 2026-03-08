@@ -1,9 +1,8 @@
 {
   "lib/nng/*.rb": {
-    "alternate": "spec/nng/{}_spec.rb"
+    "alternate": "test/nng/{}_spec.rb"
   },
-  "spec/*_spec.rb": {
-    "alternate": "lib/{}.rb",
-    "dispatch": "bundle exec rspec {file}"
+  "test/nng/*_spec.rb": {
+    "alternate": "lib/nng/{}.rb"
   }
 }
