@@ -22,14 +22,14 @@ def start_node(i, total_nodes)
   loop_times = (rand * 10).ceil
   puts "[node-#{i}] sending #{loop_times} messages"
   loop_times.times do |l_i|
-    sock.send_msg "message-#{l_i} from node-#{i}"
+    sock.send "message-#{l_i} from node-#{i}"
   end
 
   puts "[node-#{i}] finished sending"
-  sock.send_msg "fin-#{i}"
+  sock.send "fin-#{i}"
 
   loop do
-    msg = sock.get_msg
+    msg = sock.receive
     body = msg.body
     puts "[node-#{i}] got message: \"#{body}\""
     if body.start_with? 'fin'

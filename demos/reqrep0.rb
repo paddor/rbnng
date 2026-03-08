@@ -9,11 +9,11 @@ def start_client(i)
   loop_times = (rand * 10).ceil
   puts "[client #{i}] sending #{loop_times} messages"
   loop_times.times do
-    sock.send_msg("msg from client #{i}")
-    msg = sock.get_msg
+    sock.send("msg from client #{i}")
+    msg = sock.receive
   end
   puts "[client #{i}] finished"
-  sock.send_msg("fin-#{i}")
+  sock.send("fin-#{i}")
 end
 
 def start_server(total_clients)
@@ -25,7 +25,7 @@ def start_server(total_clients)
   end
   puts "[server] listening at #{ADDR}"
   loop do
-    msg = sock.get_msg
+    msg = sock.receive
     body = msg.body
     if body.start_with? 'fin'
       id = body.split('-')[1].to_i
@@ -33,7 +33,7 @@ def start_server(total_clients)
       puts "[server] client #{id} sent 'fin' message (remaining: #{running_set.to_a.join(', ')})"
       break if running_set.empty?
     else
-      sock.send_msg body
+      sock.send body
     end
   end
   puts "[server] finished"

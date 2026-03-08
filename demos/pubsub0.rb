@@ -8,7 +8,7 @@ def start_subscriber(i)
   puts "[client #{i}] dialed to #{ADDR}"
 
   loop do
-    msg = sock.get_msg
+    msg = sock.receive
     break if msg.body == "fin"
     puts "[client #{i}] got message: #{msg.body}"
   end
@@ -26,12 +26,12 @@ def start_publisher
   loop_times = (rand * 10).ceil
   puts "[publisher] publishing #{loop_times} messages"
   loop_times.times do |i|
-    sock.send_msg "message-#{i}"
+    sock.send "message-#{i}"
     sleep 0.1
   end
 
   puts "[publisher] finished"
-  sock.send_msg "fin"
+  sock.send "fin"
 end
 
 def start
