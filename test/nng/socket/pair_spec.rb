@@ -59,7 +59,7 @@ describe NNG::Socket::Pair0 do
   it 'receive uses recv_timeout as default timeout' do
     sock = NNG::Socket::Pair0.new
     sock.listen('inproc://pair0_default_recv_timeout')
-    sock.recv_timeout = 10
+    sock.recv_timeout = 0.01
 
     assert_raises(Timeout::Error) { sock.receive }
   end
@@ -67,7 +67,7 @@ describe NNG::Socket::Pair0 do
   it 'wait_readable uses recv_timeout as default timeout' do
     sock = NNG::Socket::Pair0.new
     sock.listen('inproc://pair0_default_wait_readable')
-    sock.recv_timeout = 10
+    sock.recv_timeout = 0.01
 
     assert_nil sock.wait_readable
   end
@@ -75,7 +75,7 @@ describe NNG::Socket::Pair0 do
   it 'send uses send_timeout as default timeout' do
     sock = NNG::Socket::Pair0.new
     sock.listen('inproc://pair0_default_send_timeout')
-    sock.send_timeout = 10
+    sock.send_timeout = 0.01
 
     assert_raises(Timeout::Error) { sock.send('hello') }
   end
@@ -83,7 +83,7 @@ describe NNG::Socket::Pair0 do
   it 'wait_writable uses send_timeout as default timeout' do
     sock = NNG::Socket::Pair0.new
     sock.listen('inproc://pair0_default_wait_writable')
-    sock.send_timeout = 10
+    sock.send_timeout = 0.01
 
     assert_nil sock.wait_writable
   end

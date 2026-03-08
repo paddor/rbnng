@@ -136,25 +136,33 @@ describe 'Socket options' do
   end
 
   describe '#recv_timeout / #send_timeout' do
-    it 'defaults to infinite (-1)' do
+    it 'defaults to nil (infinite)' do
       sock = NNG::Socket::Pair0.new
 
-      assert_equal(-1, sock.recv_timeout)
-      assert_equal(-1, sock.send_timeout)
+      assert_nil sock.recv_timeout
+      assert_nil sock.send_timeout
     end
 
-    it 'sets recv timeout in milliseconds' do
+    it 'sets recv timeout in seconds' do
       sock = NNG::Socket::Pair0.new
-      sock.recv_timeout = 500
+      sock.recv_timeout = 0.5
 
-      assert_equal 500, sock.recv_timeout
+      assert_equal 0.5, sock.recv_timeout
     end
 
-    it 'sets send timeout in milliseconds' do
+    it 'sets send timeout in seconds' do
       sock = NNG::Socket::Pair0.new
-      sock.send_timeout = 500
+      sock.send_timeout = 0.5
 
-      assert_equal 500, sock.send_timeout
+      assert_equal 0.5, sock.send_timeout
+    end
+
+    it 'sets timeout to nil for infinite' do
+      sock = NNG::Socket::Pair0.new
+      sock.recv_timeout = 0.5
+      sock.recv_timeout = nil
+
+      assert_nil sock.recv_timeout
     end
   end
 end

@@ -57,19 +57,21 @@ module NNG
 
 
       def recv_timeout
-        get_opt_ms('recv-timeout')
+        ms = get_opt_ms('recv-timeout')
+        ms.negative? ? nil : ms / 1000.0
       end
 
-      def recv_timeout=(ms)
-        set_opt_ms('recv-timeout', ms.to_i)
+      def recv_timeout=(seconds)
+        set_opt_ms('recv-timeout', seconds ? (seconds * 1000).to_i : -1)
       end
 
       def send_timeout
-        get_opt_ms('send-timeout')
+        ms = get_opt_ms('send-timeout')
+        ms.negative? ? nil : ms / 1000.0
       end
 
-      def send_timeout=(ms)
-        set_opt_ms('send-timeout', ms.to_i)
+      def send_timeout=(seconds)
+        set_opt_ms('send-timeout', seconds ? (seconds * 1000).to_i : -1)
       end
 
       def recv_buffer
