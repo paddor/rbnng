@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.files            = Dir['./ext/**/*.{rs,toml}'] +
                        Dir['./lib/**/*.rb']
   s.extensions       = %w[ext/rbnng/extconf.rb]
+  s.required_ruby_version = '>= 3.2'
   s.require_paths    = %w[lib]
 
   s.add_development_dependency "bundler"
@@ -21,4 +22,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency "minitest"
   s.add_development_dependency "async"
   s.add_development_dependency "benchmark"
+  s.add_development_dependency "benchmark-ips"
 end
