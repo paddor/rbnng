@@ -87,7 +87,7 @@ describe 'TLS' do
       rep.listen(url, cert: SERVER_CERT, key: SERVER_KEY)
 
       req = NNG::Socket::Req0.new
-      req.dial(url, ca: CA_CERT, server_name: '127.0.0.1')
+      req.dial(url, ca: CA_CERT, server_name: 'localhost')
 
       task.async do
         msg = rep.receive
@@ -109,7 +109,7 @@ describe 'TLS' do
       rep.listen(url, cert: SERVER_CERT.to_pem, key: SERVER_KEY.to_pem)
 
       req = NNG::Socket::Req0.new
-      req.dial(url, ca: CA_CERT.to_pem, server_name: '127.0.0.1')
+      req.dial(url, ca: CA_CERT.to_pem, server_name: 'localhost')
 
       task.async do
         msg = rep.receive
@@ -148,7 +148,7 @@ describe 'TLS' do
       req = NNG::Socket::Req0.new
       req.dial(url,
                ca: Pathname.new(ca_file.path),
-               server_name: '127.0.0.1')
+               server_name: 'localhost')
 
       task.async do
         msg = rep.receive
@@ -199,7 +199,7 @@ describe 'TLS' do
       req = NNG::Socket::Req0.new
       req.dial(url,
                cert: client_cert, key: client_key,
-               ca: CA_CERT, server_name: '127.0.0.1')
+               ca: CA_CERT, server_name: 'localhost')
 
       task.async do
         msg = rep.receive

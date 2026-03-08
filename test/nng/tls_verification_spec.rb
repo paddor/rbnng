@@ -91,7 +91,7 @@ describe 'TLS verification' do
         rep.listen(url, cert: TLSV_SERVER_CERT, key: TLSV_SERVER_KEY)
 
         req = NNG::Socket::Req0.new
-        req.dial(url, ca: TLSV_CA_CERT, server_name: '127.0.0.1')
+        req.dial(url, ca: TLSV_CA_CERT, server_name: 'localhost')
 
         task.async do
           msg = rep.receive
@@ -114,7 +114,7 @@ describe 'TLS verification' do
         rep.listen(url, cert: TLSV_SERVER_CERT, key: TLSV_SERVER_KEY)
 
         req = NNG::Socket::Req0.new
-        req.dial(url, ca: TLSV_CA_CERT, server_name: '127.0.0.1')
+        req.dial(url, ca: TLSV_CA_CERT, server_name: 'localhost')
 
         task.async do
           msg = rep.receive
@@ -143,7 +143,7 @@ describe 'TLS verification' do
         req = NNG::Socket::Req0.new
         req.dial(url,
                  cert: client_cert, key: client_key,
-                 ca: TLSV_CA_CERT, server_name: '127.0.0.1')
+                 ca: TLSV_CA_CERT, server_name: 'localhost')
 
         received_msg = nil
         task.async do
