@@ -1,33 +1,40 @@
-/*
- * Copyright (c) 2021 Adib Saad
- *
- */
-
 #ifndef RBNNG_H
 #define RBNNG_H
 
-#include "exceptions.h"
+#include <nng/nng.h>
 #include <ruby.h>
+#include <ruby/thread.h>
 
-extern void
-rbnng_rep0_Init(VALUE nng_module);
-extern void
-rbnng_req0_Init(VALUE nng_module);
-extern void
-rbnng_pair_Init(VALUE nng_module);
-extern void
-rbnng_pub0_Init(VALUE nng_module);
-extern void
-rbnng_sub0_Init(VALUE nng_module);
-extern void
-rbnng_bus0_Init(VALUE nng_module);
-extern void
-rbnng_surveyor0_Init(VALUE nng_module);
-extern void
-rbnng_respondent0_Init(VALUE nng_module);
-extern void
-rbnng_push0_Init(VALUE nng_module);
-extern void
-rbnng_pull0_Init(VALUE nng_module);
+/* ── Exceptions ─────────────────────────────────────────────────── */
+
+void rbnng_exceptions_init(VALUE nng_module);
+void raise_nng_error(int rv);
+
+/* ── Message ────────────────────────────────────────────────────── */
+
+typedef struct {
+    nng_msg *msg; /* NULL when consumed */
+} rbnng_msg_t;
+
+extern const rb_data_type_t rbnng_msg_type;
+extern VALUE cMessage;
+
+VALUE rbnng_msg_wrap(nng_msg *msg);
+void rbnng_msg_init(VALUE nng_module);
+
+/* ── Socket ─────────────────────────────────────────────────────── */
+
+typedef struct {
+    nng_socket socket;
+    int initialized;
+} rbnng_socket_t;
+
+extern const rb_data_type_t rbnng_socket_type;
+
+void rbnng_socket_init(VALUE nng_module);
+
+/* ── Device ─────────────────────────────────────────────────────── */
+
+void rbnng_device_init(VALUE nng_module);
 
 #endif

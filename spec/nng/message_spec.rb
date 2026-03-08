@@ -47,6 +47,13 @@ describe NNG::Message do
     end
   end
 
+  describe '#to_s' do
+    it 'returns the body' do
+      msg = roundtrip_msg('hello')
+      assert_equal 'hello', msg.to_s
+    end
+  end
+
   describe '#dup' do
     it 'creates an independent copy' do
       msg = roundtrip_msg('original')
@@ -124,42 +131,99 @@ describe NNG::Message do
     end
   end
 
-  describe 'header manipulation' do
-    it '#header_append adds data to the end of the header' do
+  describe '#header / #header=' do
+    it '#header returns an Array of 4-byte Strings' do
       Async do |task|
         rep = NNG::Socket::Rep0.new(raw: true)
-        rep.listen('inproc://msg_header_append')
+        rep.listen('inproc://msg_header_array')
 
         req = NNG::Socket::Req0.new
-        req.dial('inproc://msg_header_append')
+        req.dial('inproc://msg_header_array')
 
         task.async { req.send('test') }
 
         msg = rep.receive
-        original_header = msg.header.dup
-        msg.header_append('extra')
-        assert_equal original_header + 'extra', msg.header
+        hdr = msg.header
+
+        assert_instance_of Array, hdr
+        refute_empty hdr
+        hdr.each { |el| assert_equal 4, el.bytesize }
       end
     end
 
-    it '#header_prepend inserts data at the start of the header' do
+    it '#header= replaces the header' do
       Async do |task|
         rep = NNG::Socket::Rep0.new(raw: true)
-        rep.listen('inproc://msg_header_prepend')
+        rep.listen('inproc://msg_header_set')
 
         req = NNG::Socket::Req0.new
-        req.dial('inproc://msg_header_prepend')
+        req.dial('inproc://msg_header_set')
+
+        task.async do
+          msg = rep.receive
+          saved = msg.header
+          msg.header = saved
+          rep.forward(msg)
+        end
+
+        req.send('roundtrip')
+        reply = req.receive
+        assert_equal 'roundtrip', reply.body
+      end
+    end
+
+    it '#header= validates element size' do
+      Async do |task|
+        rep = NNG::Socket::Rep0.new(raw: true)
+        rep.listen('inproc://msg_header_validate')
+
+        req = NNG::Socket::Req0.new
+        req.dial('inproc://msg_header_validate')
 
         task.async { req.send('test') }
 
         msg = rep.receive
-        original_header = msg.header.dup
-        msg.header_prepend('front')
-        assert_equal 'front' + original_header, msg.header
+        assert_raises(ArgumentError) { msg.header = ['too short'] }
+        assert_raises(ArgumentError) { msg.header = ['way too long data'] }
       end
     end
 
-    it '#header_clear removes all header data' do
+    it '#header can be saved and restored for forwarding' do
+      Async do |task|
+        backend = NNG::Socket::Rep0.new
+        backend.listen('inproc://msg_header_save_restore')
+
+        proxy_fe = NNG::Socket::Rep0.new(raw: true)
+        proxy_fe.listen('inproc://msg_header_save_restore_fe')
+
+        proxy_be = NNG::Socket::Req0.new(raw: true)
+        proxy_be.dial('inproc://msg_header_save_restore')
+
+        client = NNG::Socket::Req0.new
+        client.dial('inproc://msg_header_save_restore_fe')
+
+        task.async do
+          msg = backend.receive
+          backend.send(msg.body)
+        end
+
+        task.async do
+          msg = proxy_fe.receive
+          saved_header = msg.header
+          proxy_be.forward(msg)
+
+          reply = proxy_be.receive
+          reply.header = saved_header
+          proxy_fe.forward(reply)
+        end
+
+        client.send('hello')
+        reply = client.receive
+        assert_equal 'hello', reply.body
+      end
+    end
+
+    it '#header= with empty array clears the header' do
       Async do |task|
         rep = NNG::Socket::Rep0.new(raw: true)
         rep.listen('inproc://msg_header_clear')
@@ -171,25 +235,8 @@ describe NNG::Message do
 
         msg = rep.receive
         refute_empty msg.header
-        msg.header_clear
+        msg.header = []
         assert_empty msg.header
-      end
-    end
-
-    it '#header_trim removes bytes from the start of the header' do
-      Async do |task|
-        rep = NNG::Socket::Rep0.new(raw: true)
-        rep.listen('inproc://msg_header_trim')
-
-        req = NNG::Socket::Req0.new
-        req.dial('inproc://msg_header_trim')
-
-        task.async { req.send('test') }
-
-        msg = rep.receive
-        original_len = msg.header.bytesize
-        msg.header_trim(4)
-        assert_equal original_len - 4, msg.header.bytesize
       end
     end
   end
