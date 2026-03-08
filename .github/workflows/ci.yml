@@ -9,20 +9,22 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    container:
-      image: debian:trixie
     steps:
-      - name: Install dependencies
-        run: |
-          apt-get update
-          apt-get install -y build-essential git libnng-dev
-
       - uses: actions/checkout@v4
 
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "4.0"
           bundler-cache: true
+
+      - name: Build and install libnng with TLS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libmbedtls-dev
+          git clone --branch v1.10.1 --depth 1 https://github.com/nanomsg/nng.git /tmp/nng
+          cmake -S /tmp/nng -B /tmp/nng/build -DCMAKE_BUILD_TYPE=Release -DNNG_ENABLE_TLS=ON
+          cmake --build /tmp/nng/build --parallel
+          sudo cmake --install /tmp/nng/build
 
       - name: Compile extension
         run: bundle exec rake compile
