@@ -158,11 +158,9 @@ static VALUE
 msg_pipe(VALUE self)
 {
     nng_pipe p = nng_msg_get_pipe(msg_ptr(self));
-    int id = nng_pipe_id(p);
-    if (id < 0)
+    if (nng_pipe_id(p) < 0)
         return Qnil;
-    extern VALUE cPipe;
-    return rb_funcall(cPipe, rb_intern("new"), 1, UINT2NUM((uint32_t)id));
+    return rbnng_pipe_wrap(p);
 }
 
 /* ── Init ───────────────────────────────────────────────────────── */
