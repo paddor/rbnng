@@ -61,7 +61,7 @@ describe 'TLS verification' do
       port = next_tlsv_port
       url = "tls+tcp://127.0.0.1:#{port}"
 
-      Async do |task|
+      Sync do |task|
         rep = NNG::Socket::Rep0.new
         rep.listen(url, cert: TLSV_SERVER_CERT, key: TLSV_SERVER_KEY)
 
@@ -86,7 +86,7 @@ describe 'TLS verification' do
       port = next_tlsv_port
       url = "tls+tcp://127.0.0.1:#{port}"
 
-      Async do |task|
+      Sync do |task|
         rep = NNG::Socket::Rep0.new
         rep.listen(url, cert: TLSV_SERVER_CERT, key: TLSV_SERVER_KEY)
 
@@ -109,7 +109,7 @@ describe 'TLS verification' do
       port = next_tlsv_port
       url = "tls+tcp://127.0.0.1:#{port}"
 
-      Async do |task|
+      Sync do |task|
         rep = NNG::Socket::Rep0.new
         rep.listen(url, cert: TLSV_SERVER_CERT, key: TLSV_SERVER_KEY)
 
@@ -134,7 +134,7 @@ describe 'TLS verification' do
       port = next_tlsv_port
       url = "tls+tcp://127.0.0.1:#{port}"
 
-      Async do |task|
+      Sync do |task|
         rep = NNG::Socket::Rep0.new
         rep.listen(url,
                    cert: TLSV_SERVER_CERT, key: TLSV_SERVER_KEY,

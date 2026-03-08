@@ -8,7 +8,7 @@ require 'nng'
 
 describe 'Message memory management' do
   it 'collects messages after receive' do
-    Async do |task|
+    Sync do |task|
       rep = NNG::Socket::Rep0.new
       rep.listen('inproc://mem_collect')
 
@@ -36,7 +36,7 @@ describe 'Message memory management' do
   end
 
   it 'forward consumes the message' do
-    Async do |task|
+    Sync do |task|
       backend = NNG::Socket::Rep0.new
       backend.listen('inproc://mem_forward_consume')
 
@@ -73,7 +73,7 @@ describe 'Message memory management' do
   end
 
   it 'does not leak messages during repeated forward cycles' do
-    Async do |task|
+    Sync do |task|
       backend = NNG::Socket::Rep0.new
       backend.listen('inproc://mem_forward_leak')
 
@@ -119,7 +119,7 @@ describe 'Message memory management' do
   end
 
   it 'does not leak when messages go out of scope without being read' do
-    Async do |task|
+    Sync do |task|
       rep = NNG::Socket::Rep0.new
       rep.listen('inproc://mem_unread')
 
@@ -147,7 +147,7 @@ describe 'Message memory management' do
   end
 
   it 'does not grow memory over many send/receive cycles' do
-    Async do |task|
+    Sync do |task|
       rep = NNG::Socket::Rep0.new
       rep.listen('inproc://mem_growth')
 

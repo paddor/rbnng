@@ -7,7 +7,7 @@ require 'nng'
 
 describe 'Surveyor0 / Respondent0' do
   it 'respondent receives survey and surveyor receives response' do
-    Async do |task|
+    Sync do |task|
       surveyor = NNG::Socket::Surveyor0.new
       surveyor.listen('inproc://survey_spec')
 

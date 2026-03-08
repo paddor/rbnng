@@ -11,7 +11,7 @@ describe NNG::Message do
   def roundtrip_msg(body)
     seq = MSG_SPEC_SEQ[0] += 1
     msg = nil
-    Async do |task|
+    Sync do |task|
       addr = "inproc://msg_spec_roundtrip_#{seq}"
       rep = NNG::Socket::Rep0.new
       rep.listen(addr)
@@ -64,7 +64,7 @@ describe NNG::Message do
     end
 
     it 'copy is independent of original' do
-      Async do |task|
+      Sync do |task|
         rep = NNG::Socket::Rep0.new(raw: true)
         rep.listen('inproc://msg_dup_independent')
 
@@ -95,7 +95,7 @@ describe NNG::Message do
     end
 
     it 'returns true after forward' do
-      Async do |task|
+      Sync do |task|
         backend = NNG::Socket::Rep0.new
         backend.listen('inproc://msg_consumed_fwd')
 
@@ -133,7 +133,7 @@ describe NNG::Message do
 
   describe '#header / #header=' do
     it '#header returns an Array of 4-byte Strings' do
-      Async do |task|
+      Sync do |task|
         rep = NNG::Socket::Rep0.new(raw: true)
         rep.listen('inproc://msg_header_array')
 
@@ -152,7 +152,7 @@ describe NNG::Message do
     end
 
     it '#header= replaces the header' do
-      Async do |task|
+      Sync do |task|
         rep = NNG::Socket::Rep0.new(raw: true)
         rep.listen('inproc://msg_header_set')
 
@@ -173,7 +173,7 @@ describe NNG::Message do
     end
 
     it '#header= validates element size' do
-      Async do |task|
+      Sync do |task|
         rep = NNG::Socket::Rep0.new(raw: true)
         rep.listen('inproc://msg_header_validate')
 
@@ -189,7 +189,7 @@ describe NNG::Message do
     end
 
     it '#header can be saved and restored for forwarding' do
-      Async do |task|
+      Sync do |task|
         backend = NNG::Socket::Rep0.new
         backend.listen('inproc://msg_header_save_restore')
 
@@ -224,7 +224,7 @@ describe NNG::Message do
     end
 
     it '#header= with empty array clears the header' do
-      Async do |task|
+      Sync do |task|
         rep = NNG::Socket::Rep0.new(raw: true)
         rep.listen('inproc://msg_header_clear')
 
@@ -243,7 +243,7 @@ describe NNG::Message do
 
   describe 'body manipulation' do
     it '#body_clear removes all body data' do
-      Async do |task|
+      Sync do |task|
         rep = NNG::Socket::Rep0.new(raw: true)
         rep.listen('inproc://msg_body_clear')
 
@@ -267,7 +267,7 @@ describe NNG::Message do
     end
 
     it '#body_append adds data to the body' do
-      Async do |task|
+      Sync do |task|
         rep = NNG::Socket::Rep0.new(raw: true)
         rep.listen('inproc://msg_body_append')
 

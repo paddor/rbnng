@@ -7,7 +7,7 @@ require 'nng'
 
 describe 'Pub0 / Sub0' do
   it 'subscriber receives a published message' do
-    Async do |task|
+    Sync do |task|
       pub = NNG::Socket::Pub0.new
       pub.listen('inproc://pubsub_basic')
 
@@ -24,7 +24,7 @@ describe 'Pub0 / Sub0' do
   end
 
   it 'delivers to multiple subscribers' do
-    Async do |task|
+    Sync do |task|
       pub = NNG::Socket::Pub0.new
       pub.listen('inproc://pubsub_multi_sub')
 
@@ -46,7 +46,7 @@ describe 'Pub0 / Sub0' do
   end
 
   it 'delivers multiple messages in order' do
-    Async do |task|
+    Sync do |task|
       pub = NNG::Socket::Pub0.new
       pub.listen('inproc://pubsub_ordering')
 
@@ -67,7 +67,7 @@ describe 'Pub0 / Sub0' do
   end
 
   it 'subscriber joining late misses earlier messages' do
-    Async do |task|
+    Sync do |task|
       pub = NNG::Socket::Pub0.new
       pub.listen('inproc://pubsub_late_join')
 
@@ -87,7 +87,7 @@ describe 'Pub0 / Sub0' do
   end
 
   it 'prefix filters messages by topic' do
-    Async do |task|
+    Sync do |task|
       pub = NNG::Socket::Pub0.new
       pub.listen('inproc://pubsub_prefix')
 
@@ -113,7 +113,7 @@ describe 'Pub0 / Sub0' do
   end
 
   it 'no prefix subscribes to all messages' do
-    Async do |task|
+    Sync do |task|
       pub = NNG::Socket::Pub0.new
       pub.listen('inproc://pubsub_no_prefix')
 
@@ -133,7 +133,7 @@ describe 'Pub0 / Sub0' do
   end
 
   it 'multiple publishers to one subscriber' do
-    Async do |task|
+    Sync do |task|
       sub = NNG::Socket::Sub0.new
       sub.listen('inproc://pubsub_multi_pub')
 

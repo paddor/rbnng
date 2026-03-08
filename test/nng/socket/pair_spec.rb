@@ -7,7 +7,7 @@ require 'nng'
 
 describe NNG::Socket::Pair0 do
   it 'can send and receive a message' do
-    Async do |task|
+    Sync do |task|
       listener = NNG::Socket::Pair0.new
       listener.listen('inproc://pair0_spec')
 
@@ -89,7 +89,7 @@ describe NNG::Socket::Pair0 do
   end
 
   it 'receive works with explicit timeout when data is available' do
-    Async do |task|
+    Sync do |task|
       listener = NNG::Socket::Pair0.new
       listener.listen('inproc://pair0_recv_timeout_ok')
 
@@ -106,7 +106,7 @@ end
 
 describe NNG::Socket::Pair1 do
   it 'can send and receive a message' do
-    Async do |task|
+    Sync do |task|
       listener = NNG::Socket::Pair1.new
       listener.listen('inproc://pair1_spec')
 

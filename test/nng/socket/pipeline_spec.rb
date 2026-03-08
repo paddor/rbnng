@@ -7,7 +7,7 @@ require 'nng'
 
 describe 'Push0 / Pull0' do
   it 'pull receives what push sends' do
-    Async do |task|
+    Sync do |task|
       pull = NNG::Socket::Pull0.new
       pull.listen('inproc://pipeline_spec')
 

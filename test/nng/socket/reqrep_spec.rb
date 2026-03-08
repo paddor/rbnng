@@ -7,7 +7,7 @@ require 'nng'
 
 describe 'Req0 / Rep0' do
   it 'completes a request/reply roundtrip' do
-    Async do |task|
+    Sync do |task|
       rep = NNG::Socket::Rep0.new
       rep.listen('inproc://reqrep_basic')
 
@@ -28,7 +28,7 @@ describe 'Req0 / Rep0' do
   end
 
   it 'handles multiple sequential requests' do
-    Async do |task|
+    Sync do |task|
       rep = NNG::Socket::Rep0.new
       rep.listen('inproc://reqrep_sequential')
 
@@ -51,7 +51,7 @@ describe 'Req0 / Rep0' do
   end
 
   it 'serves multiple clients' do
-    Async do |task|
+    Sync do |task|
       rep = NNG::Socket::Rep0.new
       rep.listen('inproc://reqrep_multi_client')
 
@@ -82,7 +82,7 @@ describe 'Req0 / Rep0' do
   end
 
   it 'proxies a request through a middle rep/req pair' do
-    Async do |task|
+    Sync do |task|
       # Backend: the service that does the actual work
       backend = NNG::Socket::Rep0.new
       backend.listen('inproc://reqrep_backend')
@@ -120,7 +120,7 @@ describe 'Req0 / Rep0' do
   end
 
   it 'proxies multiple requests through a middle rep/req pair' do
-    Async do |task|
+    Sync do |task|
       backend = NNG::Socket::Rep0.new
       backend.listen('inproc://reqrep_proxy_multi')
 
@@ -162,7 +162,7 @@ describe 'Req0 / Rep0' do
   end
 
   it 'single-hop raw proxy via forward' do
-    Async do |task|
+    Sync do |task|
       # Backend
       backend = NNG::Socket::Rep0.new
       backend.listen('inproc://raw_proxy_single')
@@ -200,7 +200,7 @@ describe 'Req0 / Rep0' do
   end
 
   it 'multi-hop raw proxy via forward' do
-    Async do |task|
+    Sync do |task|
       # Backend
       backend = NNG::Socket::Rep0.new
       backend.listen('inproc://raw_proxy_multi_hop_be')
@@ -253,7 +253,7 @@ describe 'Req0 / Rep0' do
   end
 
   it 'multi-hop raw proxy handles multiple sequential requests' do
-    Async do |task|
+    Sync do |task|
       backend = NNG::Socket::Rep0.new
       backend.listen('inproc://raw_multi_hop_seq_be')
 
@@ -308,7 +308,7 @@ describe 'Req0 / Rep0' do
   end
 
   it 'raw proxy preserves message header across hops' do
-    Async do |task|
+    Sync do |task|
       backend = NNG::Socket::Rep0.new(raw: true)
       backend.listen('inproc://raw_header_check_be')
 

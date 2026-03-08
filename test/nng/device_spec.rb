@@ -21,7 +21,7 @@ describe NNG::Device do
   end
 
   it 'proxies req/rep between two raw sockets' do
-    Async do |task|
+    Sync do |task|
       backend = NNG::Socket::Rep0.new
       backend.listen('inproc://device_reqrep_be')
 
@@ -49,7 +49,7 @@ describe NNG::Device do
   end
 
   it 'proxies push/pull pipeline' do
-    Async do |task|
+    Sync do |task|
       frontend = NNG::Socket::Pull0.new(raw: true)
       frontend.listen('inproc://device_pipeline_fe')
 
@@ -73,7 +73,7 @@ describe NNG::Device do
   end
 
   it 'proxies multiple messages' do
-    Async do |task|
+    Sync do |task|
       backend = NNG::Socket::Rep0.new
       backend.listen('inproc://device_multi_be')
 

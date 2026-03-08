@@ -43,7 +43,7 @@ describe 'Error handling' do
     sock = NNG::Socket::Pair0.new
     sock.listen('inproc://error_double_fwd')
 
-    Async do |task|
+    Sync do |task|
       sender = NNG::Socket::Pair0.new
       sender.dial('inproc://error_double_fwd')
 
@@ -55,7 +55,7 @@ describe 'Error handling' do
     end
 
     # Simpler test: create a message, forward it, try again
-    Async do |task|
+    Sync do |task|
       backend = NNG::Socket::Rep0.new
       backend.listen('inproc://error_consumed_be')
 

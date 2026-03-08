@@ -60,7 +60,7 @@ describe 'TLS' do
     port = next_tls_port
     url = "tls+tcp://127.0.0.1:#{port}"
 
-    Async do |task|
+    Sync do |task|
       rep = NNG::Socket::Rep0.new
       rep.listen(url, cert: SERVER_CERT, key: SERVER_KEY)
 
@@ -82,7 +82,7 @@ describe 'TLS' do
     port = next_tls_port
     url = "tls+tcp://127.0.0.1:#{port}"
 
-    Async do |task|
+    Sync do |task|
       rep = NNG::Socket::Rep0.new
       rep.listen(url, cert: SERVER_CERT, key: SERVER_KEY)
 
@@ -104,7 +104,7 @@ describe 'TLS' do
     port = next_tls_port
     url = "tls+tcp://127.0.0.1:#{port}"
 
-    Async do |task|
+    Sync do |task|
       rep = NNG::Socket::Rep0.new
       rep.listen(url, cert: SERVER_CERT.to_pem, key: SERVER_KEY.to_pem)
 
@@ -139,7 +139,7 @@ describe 'TLS' do
     port = next_tls_port
     url = "tls+tcp://127.0.0.1:#{port}"
 
-    Async do |task|
+    Sync do |task|
       rep = NNG::Socket::Rep0.new
       rep.listen(url,
                  cert: Pathname.new(cert_file.path),
@@ -169,7 +169,7 @@ describe 'TLS' do
     port = next_tls_port
     url = "tls+tcp://127.0.0.1:#{port}"
 
-    Async do |task|
+    Sync do |task|
       pub = NNG::Socket::Pub0.new
       pub.listen(url, cert: SERVER_CERT, key: SERVER_KEY)
 
@@ -190,7 +190,7 @@ describe 'TLS' do
     port = next_tls_port
     url = "tls+tcp://127.0.0.1:#{port}"
 
-    Async do |task|
+    Sync do |task|
       rep = NNG::Socket::Rep0.new
       rep.listen(url,
                  cert: SERVER_CERT, key: SERVER_KEY,

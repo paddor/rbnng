@@ -7,7 +7,7 @@ require 'nng'
 
 describe NNG::Socket::Bus0 do
   it 'broadcasts to all connected nodes' do
-    Async do |task|
+    Sync do |task|
       node0 = NNG::Socket::Bus0.new
       node0.listen('inproc://bus_spec_0')
 
