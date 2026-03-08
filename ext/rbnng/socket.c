@@ -344,15 +344,42 @@ DEF_INIT(rep0_init,       nng_rep0_open,        nng_rep0_open_raw)
 DEF_INIT(surveyor0_init,  nng_surveyor0_open,   nng_surveyor0_open_raw)
 DEF_INIT(respondent0_init,nng_respondent0_open, nng_respondent0_open_raw)
 
-/* Sub0: subscribe to all after open */
+/* Sub0: subscribe with optional prefix: kwarg (default: all) */
 static VALUE
 sub0_init(int argc, VALUE *argv, VALUE self)
 {
-    sub0_init_inner(argc, argv, self);
-    rbnng_socket_t *s = socket_get(self);
-    int rv = nng_socket_set(s->socket, NNG_OPT_SUB_SUBSCRIBE, NULL, 0);
+    rbnng_socket_t *s;
+    TypedData_Get_Struct(self, rbnng_socket_t, &rbnng_socket_type, s);
+    if (s->initialized)
+        rb_raise(rb_eRuntimeError, "socket already initialized");
+
+    VALUE opts = Qnil;
+    rb_scan_args(argc, argv, ":", &opts);
+
+    int raw = 0;
+    VALUE prefix = Qnil;
+    if (!NIL_P(opts)) {
+        raw = RTEST(rb_hash_lookup2(opts, ID2SYM(rb_intern("raw")), Qfalse));
+        prefix = rb_hash_lookup2(opts, ID2SYM(rb_intern("prefix")), Qnil);
+    }
+
+    int rv = raw ? nng_sub0_open_raw(&s->socket)
+                 : nng_sub0_open(&s->socket);
     if (rv != 0)
         raise_nng_error(rv);
+    s->initialized = 1;
+    rb_ivar_set(self, rb_intern("@raw"), raw ? Qtrue : Qfalse);
+
+    if (NIL_P(prefix)) {
+        rv = nng_socket_set(s->socket, NNG_OPT_SUB_SUBSCRIBE, NULL, 0);
+    } else {
+        StringValue(prefix);
+        rv = nng_socket_set(s->socket, NNG_OPT_SUB_SUBSCRIBE,
+                            RSTRING_PTR(prefix), RSTRING_LEN(prefix));
+    }
+    if (rv != 0)
+        raise_nng_error(rv);
+
     return self;
 }
 

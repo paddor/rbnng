@@ -86,6 +86,52 @@ describe 'Pub0 / Sub0' do
     end
   end
 
+  it 'prefix filters messages by topic' do
+    Async do |task|
+      pub = NNG::Socket::Pub0.new
+      pub.listen('inproc://pubsub_prefix')
+
+      sub_a = NNG::Socket::Sub0.new(prefix: 'weather.')
+      sub_a.dial('inproc://pubsub_prefix')
+
+      sub_b = NNG::Socket::Sub0.new(prefix: 'sports.')
+      sub_b.dial('inproc://pubsub_prefix')
+
+      sleep 0.01
+
+      task.async do
+        pub.send('weather.rain')
+        pub.send('sports.goal')
+        pub.send('weather.sun')
+      end
+
+      assert_equal 'weather.rain', sub_a.receive.body
+      assert_equal 'weather.sun',  sub_a.receive.body
+
+      assert_equal 'sports.goal',  sub_b.receive.body
+    end
+  end
+
+  it 'no prefix subscribes to all messages' do
+    Async do |task|
+      pub = NNG::Socket::Pub0.new
+      pub.listen('inproc://pubsub_no_prefix')
+
+      sub = NNG::Socket::Sub0.new
+      sub.dial('inproc://pubsub_no_prefix')
+
+      sleep 0.01
+
+      task.async do
+        pub.send('alpha')
+        pub.send('beta')
+      end
+
+      assert_equal 'alpha', sub.receive.body
+      assert_equal 'beta',  sub.receive.body
+    end
+  end
+
   it 'multiple publishers to one subscriber' do
     Async do |task|
       sub = NNG::Socket::Sub0.new
