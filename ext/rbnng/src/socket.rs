@@ -91,6 +91,16 @@ where
 // Shared socket methods (defined on Base, inherited by all subclasses)
 // ---------------------------------------------------------------------------
 
+fn socket_close(rb_self: Obj<Socket>) -> Result<()> {
+    let ruby = Ruby::get_with(rb_self);
+    let socket = rb_self.nng_socket(&ruby)?;
+    let rv = unsafe { ffi::nng_close(socket) };
+    if rv != 0 {
+        return Err(nng_error(&ruby, rv));
+    }
+    Ok(())
+}
+
 fn socket_listen(rb_self: Obj<Socket>, url: RString) -> Result<()> {
     let ruby = Ruby::get_with(rb_self);
     let socket = rb_self.nng_socket(&ruby)?;
@@ -399,6 +409,7 @@ pub fn init(ruby: &Ruby, nng: RModule) -> Result<()> {
 
     let base = socket_module.define_class("Base", ruby.class_object())?;
     base.define_alloc_func::<Socket>();
+    base.define_method("close", method!(socket_close, 0))?;
     base.define_method("listen", method!(socket_listen, 1))?;
     base.define_method("dial", method!(socket_dial, 1))?;
     base.define_method("receive", method!(socket_receive, 0))?;

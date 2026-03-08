@@ -113,6 +113,15 @@ extern "C" {
     pub fn nng_msg_header(msg: *mut NngMsg) -> *mut c_void;
     pub fn nng_msg_header_len(msg: *mut NngMsg) -> usize;
     pub fn nng_msg_append(msg: *mut NngMsg, data: *const c_void, size: usize) -> c_int;
+    pub fn nng_msg_dup(dup: *mut *mut NngMsg, orig: *const NngMsg) -> c_int;
+    pub fn nng_msg_header_append(msg: *mut NngMsg, data: *const c_void, size: usize) -> c_int;
+    pub fn nng_msg_header_insert(msg: *mut NngMsg, data: *const c_void, size: usize) -> c_int;
+    pub fn nng_msg_header_clear(msg: *mut NngMsg);
+    pub fn nng_msg_header_trim(msg: *mut NngMsg, size: usize) -> c_int;
+    pub fn nng_msg_clear(msg: *mut NngMsg);
+
+    // Device
+    pub fn nng_device(s1: NngSocket, s2: NngSocket) -> c_int;
 
     // Options — typed getters
     pub fn nng_socket_get_int(socket: NngSocket, opt: *const c_char, val: *mut c_int) -> c_int;

@@ -1,3 +1,4 @@
+mod device;
 mod error;
 mod ffi;
 mod msg;
@@ -9,6 +10,7 @@ use magnus::{function, prelude::*, Error, RArray, Ruby};
 fn init(ruby: &Ruby) -> Result<(), Error> {
     let nng = ruby.define_module("NNG")?;
     nng.define_singleton_method("nng_version", function!(nng_version, 0))?;
+    device::init(ruby, nng)?;
     error::init(ruby, nng)?;
     msg::init(ruby, nng)?;
     socket::init(ruby, nng)?;
