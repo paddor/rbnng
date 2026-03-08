@@ -20,9 +20,9 @@ jobs:
       - name: Build and install libnng with TLS
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake libmbedtls-dev
+          sudo apt-get install -y cmake pkg-config libmbedtls-dev
           git clone --branch v1.10.1 --depth 1 https://github.com/nanomsg/nng.git /tmp/nng
-          cmake -S /tmp/nng -B /tmp/nng/build -DCMAKE_BUILD_TYPE=Release -DNNG_ENABLE_TLS=ON
+          cmake -S /tmp/nng -B /tmp/nng/build -DCMAKE_BUILD_TYPE=Release -DNNG_ENABLE_TLS=ON -DBUILD_SHARED_LIBS=ON
           cmake --build /tmp/nng/build --parallel
           sudo cmake --install /tmp/nng/build
           sudo ldconfig
