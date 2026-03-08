@@ -1,14 +1,14 @@
 module NNG
   module Socket
     module Writable
-      def wait_writable
+      def wait_writable(timeout = nil)
         @send_io ||= IO.for_fd(send_fd, autoclose: false)
-        @send_io.wait_readable
+        @send_io.wait_readable(timeout)
       end
 
-      def send(data)
-        wait_writable
-        super
+      def send(data, timeout: nil)
+        wait_writable(timeout) or raise Timeout::Error, "send timed out"
+        super(data)
       end
     end
   end

@@ -39,6 +39,35 @@ describe NNG::Socket::Pair0 do
   it "exposes wait_writable" do
     assert_respond_to NNG::Socket::Pair0.new, :wait_writable
   end
+
+  it "receive times out when no message arrives" do
+    sock = NNG::Socket::Pair0.new
+    sock.listen("inproc://pair0_recv_timeout")
+
+    assert_raises(Timeout::Error) { sock.receive(timeout: 0.01) }
+  end
+
+  it "wait_readable returns nil on timeout" do
+    sock = NNG::Socket::Pair0.new
+    sock.listen("inproc://pair0_wait_timeout")
+
+    assert_nil sock.wait_readable(0.01)
+  end
+
+  it "receive works with explicit timeout when data is available" do
+    Async do |task|
+      listener = NNG::Socket::Pair0.new
+      listener.listen("inproc://pair0_recv_timeout_ok")
+
+      dialer = NNG::Socket::Pair0.new
+      dialer.dial("inproc://pair0_recv_timeout_ok")
+
+      task.async { dialer.send("hello") }
+      msg = listener.receive(timeout: 1)
+
+      assert_equal "hello", msg.body
+    end
+  end
 end
 
 describe NNG::Socket::Pair1 do

@@ -1,3 +1,4 @@
+require "timeout"
 require "nng/rbnng"
 require "nng/version"
 
