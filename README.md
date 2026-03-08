@@ -5,7 +5,7 @@ Ruby bindings for [nng](https://nng.nanomsg.org/) (nanomsg next generation), a l
 ## Requirements
 
 - Ruby >= 3.2
-- libnng
+- libnng (with TLS support for `tls+tcp://`)
 
 ## Installation
 
@@ -105,6 +105,56 @@ Async do |task|
 end
 ```
 
+### TLS
+
+Any socket type works over TLS using `tls+tcp://` URLs:
+
+```ruby
+Async do |task|
+  rep = NNG::Socket::Rep0.new
+  rep.listen('tls+tcp://127.0.0.1:5556',
+             cert: server_cert, key: server_key)
+
+  req = NNG::Socket::Req0.new
+  req.dial('tls+tcp://127.0.0.1:5556',
+           ca: ca_cert, server_name: '127.0.0.1')
+
+  task.async do
+    msg = rep.receive
+    rep.send("secure: #{msg.body}")
+  end
+
+  req.send('hello')
+  reply = req.receive
+  puts reply.body  # => "secure: hello"
+end
+```
+
+TLS options for `#listen`:
+- `cert:` — server certificate (PEM string, OpenSSL::X509::Certificate, or Pathname)
+- `key:` — private key (PEM string, OpenSSL::PKey, or Pathname)
+- `ca:` — CA certificate for client verification (mutual TLS)
+- `verify:` — require client certificates (`false` by default)
+
+TLS options for `#dial`:
+- `ca:` — CA certificate to verify the server
+- `cert:` / `key:` — client certificate (for mutual TLS)
+- `server_name:` — expected server CN/SAN (defaults to host from URL)
+- `verify: false` — skip server certificate verification
+
+### Pipe Introspection
+
+Received messages carry a pipe reference for connection-level metadata:
+
+```ruby
+msg = rep.receive
+pipe = msg.pipe
+
+pipe.tls_verified?  # => true (peer certificate was verified)
+pipe.tls_peer_cn    # => "127.0.0.1" (peer certificate CN)
+pipe.id             # => 1 (pipe identifier)
+```
+
 ### Raw Mode Proxy
 
 Raw mode sockets bypass the protocol state machine, enabling stateless message forwarding. Headers stack and unstack automatically across hops:
@@ -182,15 +232,7 @@ All protocols support `raw: true` for raw mode.
 - `inproc://` — in-process (fastest, same process only)
 - `ipc://` — Unix domain sockets
 - `tcp://` — TCP/IP
-
-## Benchmarks
-
-```sh
-bundle exec ruby bench/async/throughput.rb
-bundle exec ruby bench/async/latency.rb
-bundle exec ruby bench/threads/throughput.rb
-bundle exec ruby bench/threads/latency.rb
-```
+- `tls+tcp://` — TCP with TLS encryption
 
 ## Development
 

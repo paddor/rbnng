@@ -1,4 +1,7 @@
 /.claude/
 /Gemfile.lock
 /tmp/
+/pkg/
 *.so
+*.o
+*.bundle
