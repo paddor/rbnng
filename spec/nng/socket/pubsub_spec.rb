@@ -1,55 +1,57 @@
-require "minitest/autorun"
-require "minitest/spec"
-require "async"
-require "nng"
+# frozen_string_literal: true
 
-describe "Pub0 / Sub0" do
-  it "subscriber receives a published message" do
+require 'minitest/autorun'
+require 'minitest/spec'
+require 'async'
+require 'nng'
+
+describe 'Pub0 / Sub0' do
+  it 'subscriber receives a published message' do
     Async do |task|
       pub = NNG::Socket::Pub0.new
-      pub.listen("inproc://pubsub_basic")
+      pub.listen('inproc://pubsub_basic')
 
       sub = NNG::Socket::Sub0.new
-      sub.dial("inproc://pubsub_basic")
+      sub.dial('inproc://pubsub_basic')
 
       sleep 0.01
 
-      task.async { pub.send("broadcast") }
+      task.async { pub.send('broadcast') }
       msg = sub.receive
 
-      assert_equal "broadcast", msg.body
+      assert_equal 'broadcast', msg.body
     end
   end
 
-  it "delivers to multiple subscribers" do
+  it 'delivers to multiple subscribers' do
     Async do |task|
       pub = NNG::Socket::Pub0.new
-      pub.listen("inproc://pubsub_multi_sub")
+      pub.listen('inproc://pubsub_multi_sub')
 
       subs = 3.times.map do
         sub = NNG::Socket::Sub0.new
-        sub.dial("inproc://pubsub_multi_sub")
+        sub.dial('inproc://pubsub_multi_sub')
         sub
       end
 
       sleep 0.01
 
-      task.async { pub.send("fanout") }
+      task.async { pub.send('fanout') }
 
       subs.each do |sub|
         msg = sub.receive
-        assert_equal "fanout", msg.body
+        assert_equal 'fanout', msg.body
       end
     end
   end
 
-  it "delivers multiple messages in order" do
+  it 'delivers multiple messages in order' do
     Async do |task|
       pub = NNG::Socket::Pub0.new
-      pub.listen("inproc://pubsub_ordering")
+      pub.listen('inproc://pubsub_ordering')
 
       sub = NNG::Socket::Sub0.new
-      sub.dial("inproc://pubsub_ordering")
+      sub.dial('inproc://pubsub_ordering')
 
       sleep 0.01
 
@@ -64,45 +66,45 @@ describe "Pub0 / Sub0" do
     end
   end
 
-  it "subscriber joining late misses earlier messages" do
+  it 'subscriber joining late misses earlier messages' do
     Async do |task|
       pub = NNG::Socket::Pub0.new
-      pub.listen("inproc://pubsub_late_join")
+      pub.listen('inproc://pubsub_late_join')
 
       # Send before any subscriber connects
-      pub.send("early")
+      pub.send('early')
       sleep 0.01
 
       sub = NNG::Socket::Sub0.new
-      sub.dial("inproc://pubsub_late_join")
+      sub.dial('inproc://pubsub_late_join')
       sleep 0.01
 
-      task.async { pub.send("late") }
+      task.async { pub.send('late') }
       msg = sub.receive
 
-      assert_equal "late", msg.body
+      assert_equal 'late', msg.body
     end
   end
 
-  it "multiple publishers to one subscriber" do
+  it 'multiple publishers to one subscriber' do
     Async do |task|
       sub = NNG::Socket::Sub0.new
-      sub.listen("inproc://pubsub_multi_pub")
+      sub.listen('inproc://pubsub_multi_pub')
 
       pub1 = NNG::Socket::Pub0.new
-      pub1.dial("inproc://pubsub_multi_pub")
+      pub1.dial('inproc://pubsub_multi_pub')
 
       pub2 = NNG::Socket::Pub0.new
-      pub2.dial("inproc://pubsub_multi_pub")
+      pub2.dial('inproc://pubsub_multi_pub')
 
       sleep 0.01
 
-      task.async { pub1.send("from-pub1") }
-      task.async { pub2.send("from-pub2") }
+      task.async { pub1.send('from-pub1') }
+      task.async { pub2.send('from-pub2') }
 
       messages = [sub.receive.body, sub.receive.body].sort
 
-      assert_equal ["from-pub1", "from-pub2"], messages
+      assert_equal ['from-pub1', 'from-pub2'], messages
     end
   end
 end

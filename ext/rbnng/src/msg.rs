@@ -1,40 +1,63 @@
+use std::cell::UnsafeCell;
+
 use magnus::{error::Result, method, prelude::*, typed_data::Obj, Module, RModule, Ruby};
 
 use crate::ffi;
 
 #[magnus::wrap(class = "NNG::Message", free_immediately, size)]
-pub struct Message(pub *mut ffi::NngMsg);
+pub struct Message(pub UnsafeCell<*mut ffi::NngMsg>);
 
 unsafe impl Send for Message {}
 unsafe impl Sync for Message {}
 
-impl Drop for Message {
-    fn drop(&mut self) {
-        if !self.0.is_null() {
-            unsafe { ffi::nng_msg_free(self.0) };
+impl Message {
+    pub fn new(ptr: *mut ffi::NngMsg) -> Self {
+        Message(UnsafeCell::new(ptr))
+    }
+
+    fn ptr(&self) -> *mut ffi::NngMsg {
+        unsafe { *self.0.get() }
+    }
+
+    /// Takes ownership of the inner pointer, setting it to null.
+    /// The caller is responsible for the message lifetime.
+    pub fn take(&self) -> *mut ffi::NngMsg {
+        unsafe {
+            let ptr = *self.0.get();
+            *self.0.get() = std::ptr::null_mut();
+            ptr
         }
     }
-}
 
-impl Message {
     fn body(rb_self: Obj<Self>) -> Result<magnus::RString> {
         let ruby = Ruby::get_with(rb_self);
+        let ptr = rb_self.ptr();
         let body = unsafe {
-            let ptr = ffi::nng_msg_body(rb_self.0) as *const u8;
-            let len = ffi::nng_msg_len(rb_self.0);
-            std::slice::from_raw_parts(ptr, len)
+            let data = ffi::nng_msg_body(ptr) as *const u8;
+            let len = ffi::nng_msg_len(ptr);
+            std::slice::from_raw_parts(data, len)
         };
         Ok(ruby.str_from_slice(body))
     }
 
     fn header(rb_self: Obj<Self>) -> Result<magnus::RString> {
         let ruby = Ruby::get_with(rb_self);
+        let ptr = rb_self.ptr();
         let header = unsafe {
-            let ptr = ffi::nng_msg_header(rb_self.0) as *const u8;
-            let len = ffi::nng_msg_header_len(rb_self.0);
-            std::slice::from_raw_parts(ptr, len)
+            let data = ffi::nng_msg_header(ptr) as *const u8;
+            let len = ffi::nng_msg_header_len(ptr);
+            std::slice::from_raw_parts(data, len)
         };
         Ok(ruby.str_from_slice(header))
+    }
+}
+
+impl Drop for Message {
+    fn drop(&mut self) {
+        let ptr = unsafe { *self.0.get() };
+        if !ptr.is_null() {
+            unsafe { ffi::nng_msg_free(ptr) };
+        }
     }
 }
 

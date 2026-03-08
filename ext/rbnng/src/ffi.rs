@@ -114,17 +114,32 @@ extern "C" {
     pub fn nng_msg_header_len(msg: *mut NngMsg) -> usize;
     pub fn nng_msg_append(msg: *mut NngMsg, data: *const c_void, size: usize) -> c_int;
 
-    // Options
+    // Options — typed getters
     pub fn nng_socket_get_int(socket: NngSocket, opt: *const c_char, val: *mut c_int) -> c_int;
+    pub fn nng_socket_get_ms(socket: NngSocket, opt: *const c_char, val: *mut i32) -> c_int;
+    pub fn nng_socket_get_size(socket: NngSocket, opt: *const c_char, val: *mut usize) -> c_int;
+    pub fn nng_socket_get_string(
+        socket: NngSocket,
+        opt: *const c_char,
+        val: *mut *mut c_char,
+    ) -> c_int;
+
+    // Options — typed setters
     pub fn nng_socket_set(
         socket: NngSocket,
         opt: *const c_char,
         data: *const c_void,
         size: usize,
     ) -> c_int;
-    pub fn nng_socket_set_ms(
+    pub fn nng_socket_set_int(socket: NngSocket, opt: *const c_char, val: c_int) -> c_int;
+    pub fn nng_socket_set_ms(socket: NngSocket, opt: *const c_char, val: i32) -> c_int;
+    pub fn nng_socket_set_size(socket: NngSocket, opt: *const c_char, val: usize) -> c_int;
+    pub fn nng_socket_set_string(
         socket: NngSocket,
         opt: *const c_char,
-        val: i32,
+        val: *const c_char,
     ) -> c_int;
+
+    // String management
+    pub fn nng_strfree(str: *mut c_char);
 }

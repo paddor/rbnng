@@ -1,4 +1,4 @@
-use std::{ffi::CString, os::raw::c_void, sync::OnceLock};
+use std::{ffi::{c_char, CString}, os::raw::c_void, sync::OnceLock};
 
 use magnus::{
     error::Result, method, prelude::*, scan_args::{get_kwargs, scan_args}, typed_data::Obj, Error,
@@ -128,7 +128,7 @@ fn socket_receive(rb_self: Obj<Socket>) -> Result<Message> {
     if rv != 0 {
         return Err(nng_error(&ruby, rv));
     }
-    Ok(Message(msg_ptr))
+    Ok(Message::new(msg_ptr))
 }
 
 fn socket_send(rb_self: Obj<Socket>, data: RString) -> Result<()> {
@@ -156,6 +156,137 @@ fn socket_send(rb_self: Obj<Socket>, data: RString) -> Result<()> {
         rv
     });
 
+    if rv != 0 {
+        return Err(nng_error(&ruby, rv));
+    }
+    Ok(())
+}
+
+fn socket_forward(rb_self: Obj<Socket>, msg: Obj<Message>) -> Result<()> {
+    let ruby = Ruby::get_with(rb_self);
+    let socket = rb_self.nng_socket(&ruby)?;
+    let msg_ptr = msg.take();
+    if msg_ptr.is_null() {
+        return Err(Error::new(
+            ruby.exception_runtime_error(),
+            "message already consumed",
+        ));
+    }
+
+    let wrapped = SendMsgPtr(msg_ptr);
+    let (rv, SendMsgPtr(returned_ptr)) = call_without_gvl(move || {
+        let rv = unsafe { ffi::nng_sendmsg(socket, wrapped.0, 0) };
+        (rv, wrapped)
+    });
+
+    if rv != 0 {
+        unsafe { ffi::nng_msg_free(returned_ptr) };
+        return Err(nng_error(&ruby, rv));
+    }
+    Ok(())
+}
+
+fn socket_get_opt_int(rb_self: Obj<Socket>, name: RString) -> Result<i32> {
+    let ruby = Ruby::get_with(rb_self);
+    let socket = rb_self.nng_socket(&ruby)?;
+    let name = CString::new(unsafe { name.as_str() }?)
+        .map_err(|_| Error::new(ruby.exception_arg_error(), "option name contains null byte"))?;
+    let mut val: std::ffi::c_int = 0;
+    let rv = unsafe { ffi::nng_socket_get_int(socket, name.as_ptr(), &mut val) };
+    if rv != 0 {
+        return Err(nng_error(&ruby, rv));
+    }
+    Ok(val)
+}
+
+fn socket_set_opt_int(rb_self: Obj<Socket>, name: RString, val: i32) -> Result<()> {
+    let ruby = Ruby::get_with(rb_self);
+    let socket = rb_self.nng_socket(&ruby)?;
+    let name = CString::new(unsafe { name.as_str() }?)
+        .map_err(|_| Error::new(ruby.exception_arg_error(), "option name contains null byte"))?;
+    let rv = unsafe { ffi::nng_socket_set_int(socket, name.as_ptr(), val) };
+    if rv != 0 {
+        return Err(nng_error(&ruby, rv));
+    }
+    Ok(())
+}
+
+fn socket_get_opt_ms(rb_self: Obj<Socket>, name: RString) -> Result<i32> {
+    let ruby = Ruby::get_with(rb_self);
+    let socket = rb_self.nng_socket(&ruby)?;
+    let name = CString::new(unsafe { name.as_str() }?)
+        .map_err(|_| Error::new(ruby.exception_arg_error(), "option name contains null byte"))?;
+    let mut val: i32 = 0;
+    let rv = unsafe { ffi::nng_socket_get_ms(socket, name.as_ptr(), &mut val) };
+    if rv != 0 {
+        return Err(nng_error(&ruby, rv));
+    }
+    Ok(val)
+}
+
+fn socket_set_opt_ms(rb_self: Obj<Socket>, name: RString, val: i32) -> Result<()> {
+    let ruby = Ruby::get_with(rb_self);
+    let socket = rb_self.nng_socket(&ruby)?;
+    let name = CString::new(unsafe { name.as_str() }?)
+        .map_err(|_| Error::new(ruby.exception_arg_error(), "option name contains null byte"))?;
+    let rv = unsafe { ffi::nng_socket_set_ms(socket, name.as_ptr(), val) };
+    if rv != 0 {
+        return Err(nng_error(&ruby, rv));
+    }
+    Ok(())
+}
+
+fn socket_get_opt_size(rb_self: Obj<Socket>, name: RString) -> Result<usize> {
+    let ruby = Ruby::get_with(rb_self);
+    let socket = rb_self.nng_socket(&ruby)?;
+    let name = CString::new(unsafe { name.as_str() }?)
+        .map_err(|_| Error::new(ruby.exception_arg_error(), "option name contains null byte"))?;
+    let mut val: usize = 0;
+    let rv = unsafe { ffi::nng_socket_get_size(socket, name.as_ptr(), &mut val) };
+    if rv != 0 {
+        return Err(nng_error(&ruby, rv));
+    }
+    Ok(val)
+}
+
+fn socket_set_opt_size(rb_self: Obj<Socket>, name: RString, val: usize) -> Result<()> {
+    let ruby = Ruby::get_with(rb_self);
+    let socket = rb_self.nng_socket(&ruby)?;
+    let name = CString::new(unsafe { name.as_str() }?)
+        .map_err(|_| Error::new(ruby.exception_arg_error(), "option name contains null byte"))?;
+    let rv = unsafe { ffi::nng_socket_set_size(socket, name.as_ptr(), val) };
+    if rv != 0 {
+        return Err(nng_error(&ruby, rv));
+    }
+    Ok(())
+}
+
+fn socket_get_opt_string(rb_self: Obj<Socket>, name: RString) -> Result<String> {
+    let ruby = Ruby::get_with(rb_self);
+    let socket = rb_self.nng_socket(&ruby)?;
+    let name = CString::new(unsafe { name.as_str() }?)
+        .map_err(|_| Error::new(ruby.exception_arg_error(), "option name contains null byte"))?;
+    let mut ptr: *mut c_char = std::ptr::null_mut();
+    let rv = unsafe { ffi::nng_socket_get_string(socket, name.as_ptr(), &mut ptr) };
+    if rv != 0 {
+        return Err(nng_error(&ruby, rv));
+    }
+    let s = unsafe { std::ffi::CStr::from_ptr(ptr) }
+        .to_str()
+        .unwrap_or("")
+        .to_string();
+    unsafe { ffi::nng_strfree(ptr) };
+    Ok(s)
+}
+
+fn socket_set_opt_string(rb_self: Obj<Socket>, name: RString, val: RString) -> Result<()> {
+    let ruby = Ruby::get_with(rb_self);
+    let socket = rb_self.nng_socket(&ruby)?;
+    let name = CString::new(unsafe { name.as_str() }?)
+        .map_err(|_| Error::new(ruby.exception_arg_error(), "option name contains null byte"))?;
+    let val = CString::new(unsafe { val.as_str() }?)
+        .map_err(|_| Error::new(ruby.exception_arg_error(), "value contains null byte"))?;
+    let rv = unsafe { ffi::nng_socket_set_string(socket, name.as_ptr(), val.as_ptr()) };
     if rv != 0 {
         return Err(nng_error(&ruby, rv));
     }
@@ -206,6 +337,7 @@ macro_rules! define_initialize {
             if rv != 0 {
                 return Err(nng_error(&ruby, rv));
             }
+            rb_self.ivar_set("@raw", raw)?;
             rb_self.inner.set(socket).map_err(|_| {
                 Error::new(ruby.exception_runtime_error(), "socket already initialized")
             })?;
@@ -271,8 +403,17 @@ pub fn init(ruby: &Ruby, nng: RModule) -> Result<()> {
     base.define_method("dial", method!(socket_dial, 1))?;
     base.define_method("receive", method!(socket_receive, 0))?;
     base.define_method("send", method!(socket_send, 1))?;
+    base.define_method("forward", method!(socket_forward, 1))?;
     base.define_method("recv_fd", method!(socket_recv_fd, 0))?;
     base.define_method("send_fd", method!(socket_send_fd, 0))?;
+    base.define_method("get_opt_int", method!(socket_get_opt_int, 1))?;
+    base.define_method("set_opt_int", method!(socket_set_opt_int, 2))?;
+    base.define_method("get_opt_ms", method!(socket_get_opt_ms, 1))?;
+    base.define_method("set_opt_ms", method!(socket_set_opt_ms, 2))?;
+    base.define_method("get_opt_size", method!(socket_get_opt_size, 1))?;
+    base.define_method("set_opt_size", method!(socket_set_opt_size, 2))?;
+    base.define_method("get_opt_string", method!(socket_get_opt_string, 1))?;
+    base.define_method("set_opt_string", method!(socket_set_opt_string, 2))?;
 
     macro_rules! register {
         ($name:expr, $init:ident) => {{
