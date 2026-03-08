@@ -39,13 +39,6 @@ void rbnng_device_init(VALUE nng_module);
 
 /* ── Pipe ──────────────────────────────────────────────────────── */
 
-typedef struct {
-    nng_pipe pipe;
-} rbnng_pipe_t;
-
-extern const rb_data_type_t rbnng_pipe_type;
-
-VALUE rbnng_pipe_wrap(nng_pipe pipe);
 void rbnng_pipe_init(VALUE nng_module);
 
 /* ── TLS helpers (called from socket.c) ────────────────────────── */
