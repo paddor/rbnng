@@ -9,16 +9,20 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    container:
+      image: debian:trixie
     steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y build-essential git libnng-dev
+
       - uses: actions/checkout@v4
 
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "4.0"
           bundler-cache: true
-
-      - name: Install libnng
-        run: sudo apt-get update && sudo apt-get install -y libnng-dev
 
       - name: Compile extension
         run: bundle exec rake compile
