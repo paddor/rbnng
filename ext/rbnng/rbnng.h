@@ -49,6 +49,10 @@ extern const rb_data_type_t rbnng_pipe_type;
 VALUE rbnng_pipe_wrap(nng_pipe pipe);
 void rbnng_pipe_init(VALUE nng_module);
 
+/* ── Stats ─────────────────────────────────────────────────────── */
+
+void rbnng_stats_init(VALUE nng_module);
+
 /* ── TLS helpers (called from socket.c) ────────────────────────── */
 
 void rbnng_tls_listen(nng_socket sock, const char *url,

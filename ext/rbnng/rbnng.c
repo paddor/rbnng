@@ -19,5 +19,6 @@ Init_rbnng(void)
     rbnng_msg_init(nng);
     rbnng_pipe_init(nng);
     rbnng_socket_init(nng);
+    rbnng_stats_init(nng);
     rbnng_device_init(nng);
 }
