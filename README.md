@@ -22,6 +22,19 @@ apt install libnng-dev
 pacman -S nng
 ```
 
+For TLS support (`tls+tcp://` transport), also install mbedTLS:
+
+```sh
+# macOS
+brew install mbedtls
+
+# Debian/Ubuntu
+apt install libmbedtls-dev
+
+# Arch
+pacman -S mbedtls
+```
+
 Then install the gem:
 
 ```sh
@@ -117,7 +130,7 @@ Async do |task|
 
   req = NNG::Socket::Req0.new
   req.dial('tls+tcp://127.0.0.1:5556',
-           ca: ca_cert, server_name: '127.0.0.1')
+           ca: ca_cert, server_name: 'myhost.example.com')
 
   task.async do
     msg = rep.receive
