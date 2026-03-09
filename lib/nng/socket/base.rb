@@ -8,7 +8,6 @@ module NNG
       alias_method :_listen, :listen
       alias_method :_dial, :dial
 
-
       def raw?
         @raw
       end
@@ -46,7 +45,6 @@ module NNG
         (@urls ||= []).dup.freeze
       end
 
-
       def name
         get_opt_string('socket-name')
       end
@@ -54,7 +52,6 @@ module NNG
       def name=(value)
         set_opt_string('socket-name', value)
       end
-
 
       def recv_timeout
         ms = get_opt_ms('recv-timeout')
@@ -116,7 +113,6 @@ module NNG
       def peer_name
         get_opt_string('peer-name')
       end
-
 
       def each_pipe_event
         pipe_notify_start

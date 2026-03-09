@@ -16,7 +16,11 @@ describe NNG::Device do
   end
 
   after do
-    @device_sockets&.each { |s| s.close rescue nil }
+    @device_sockets&.each do |s|
+      s.close
+    rescue NNG::Error
+      # expected when already closed
+    end
     @device_thread&.join(1)
   end
 
