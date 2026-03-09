@@ -1,13 +1,14 @@
 # Changelog
 
-## 1.0.0
+## 1.0.0.pre1
 
 ### Breaking changes
 
-- Rewritten C extension from scratch (plain C, no Rust/Magnus)
+- Rewritten C extension from scratch
 - `raw` argument changed from positional bool to keyword (`raw: true`)
 - `NNG::Socket::Base` moved to its own file (`lib/nng/socket/base.rb`)
 - Removed legacy alias files (`Socket::Socket`, `ReceiverMethods`, `SenderMethods`)
+- `NNG::Error` is now the base exception class (was `NNG::Error::Error`)
 
 ### Added
 
@@ -18,6 +19,9 @@
   - `#tls_peer_cn` — peer certificate common name
   - `#id` — pipe identifier
 - **`NNG::Device`** — transparent message forwarding between sockets
+- **Pipe event notifications** — `Socket::Base#each_pipe_event` yields `:connect`/`:disconnect` events with `NNG::Pipe`
+- **Runtime statistics** — `NNG.stats` and `NNG.stats_for(socket)` return NNG stat snapshots as nested Hashes
+- **`Sub0#subscribe` / `Sub0#unsubscribe`** — add/remove topic subscriptions at runtime
 - `Socket::Base#forward(msg)` — send an existing message preserving its header, enabling stateless raw mode proxying
 - `Socket::Base#raw?` — check whether a socket was opened in raw mode
 - `Sub0.new(prefix:)` — subscribe to a topic prefix at construction time
@@ -37,6 +41,7 @@
 - `NNG.nng_version` — returns nng library version as a 3-element array
 - Message manipulation: `#body`, `#body_clear`, `#body_append`, `#header`, `#header=`, `#dup`, `#consumed?`
 - pkg-config support in `extconf.rb` with fallback to system library path
+- ZGuide messaging pattern examples (pipeline, lazy pirate, pub/sub, heartbeat, LVC, bstar, clone)
 - Comprehensive specs for all protocols, TLS, raw mode, timeouts, memory management, and socket options
 - Benchmarks for throughput and latency (inproc/IPC/TCP, async/threads)
 
