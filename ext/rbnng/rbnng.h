@@ -27,6 +27,7 @@ void rbnng_msg_init(VALUE nng_module);
 typedef struct {
     nng_socket socket;
     int initialized;
+    int notify_fds[2]; /* [read, write] for pipe event notification; -1 = inactive */
 } rbnng_socket_t;
 
 extern const rb_data_type_t rbnng_socket_type;

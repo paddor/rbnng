@@ -1,5 +1,8 @@
 #include "rbnng.h"
 
+#include <unistd.h>
+#include <fcntl.h>
+
 #include <nng/protocol/bus0/bus.h>
 #include <nng/protocol/pair0/pair.h>
 #include <nng/protocol/pair1/pair.h>
@@ -20,6 +23,8 @@ socket_free(void *ptr)
     rbnng_socket_t *s = ptr;
     if (s->initialized)
         nng_close(s->socket);
+    if (s->notify_fds[0] >= 0) close(s->notify_fds[0]);
+    if (s->notify_fds[1] >= 0) close(s->notify_fds[1]);
     xfree(s);
 }
 
@@ -43,7 +48,10 @@ static VALUE
 socket_alloc(VALUE klass)
 {
     rbnng_socket_t *s;
-    return TypedData_Make_Struct(klass, rbnng_socket_t, &rbnng_socket_type, s);
+    VALUE obj = TypedData_Make_Struct(klass, rbnng_socket_t, &rbnng_socket_type, s);
+    s->notify_fds[0] = -1;
+    s->notify_fds[1] = -1;
+    return obj;
 }
 
 static inline rbnng_socket_t *
@@ -407,6 +415,122 @@ sub0_init(int argc, VALUE *argv, VALUE self)
     return self;
 }
 
+/* Sub0: subscribe to a topic prefix at runtime */
+static VALUE
+sub0_subscribe(VALUE self, VALUE prefix)
+{
+    rbnng_socket_t *s = socket_get(self);
+    StringValue(prefix);
+    int rv = nng_socket_set(s->socket, NNG_OPT_SUB_SUBSCRIBE,
+                            RSTRING_PTR(prefix), RSTRING_LEN(prefix));
+    if (rv != 0)
+        raise_nng_error(rv);
+    return self;
+}
+
+/* Sub0: unsubscribe from a topic prefix */
+static VALUE
+sub0_unsubscribe(VALUE self, VALUE prefix)
+{
+    rbnng_socket_t *s = socket_get(self);
+    StringValue(prefix);
+    int rv = nng_socket_set(s->socket, NNG_OPT_SUB_UNSUBSCRIBE,
+                            RSTRING_PTR(prefix), RSTRING_LEN(prefix));
+    if (rv != 0)
+        raise_nng_error(rv);
+    return self;
+}
+
+/* ── Pipe notification ─────────────────────────────────────────── */
+
+/*
+ * Event packet written by the C callback (5 bytes):
+ *   byte 0:    event type  (1 = connect / ADD_POST, 2 = disconnect / REM_POST)
+ *   bytes 1-4: pipe id     (uint32 little-endian)
+ *
+ * The callback runs on an NNG internal thread with the socket lock held,
+ * so it cannot touch Ruby.  Writing to a pipe(2) is async-signal-safe.
+ */
+
+/* event packet: 1 byte event type + nng_pipe (uint32_t) */
+#define PIPE_EVENT_SIZE (1 + sizeof(nng_pipe))
+
+static void
+pipe_notify_cb(nng_pipe p, nng_pipe_ev ev, void *arg)
+{
+    rbnng_socket_t *s = arg;
+    if (s->notify_fds[1] < 0) return;
+
+    uint8_t buf[PIPE_EVENT_SIZE];
+    buf[0] = (ev == NNG_PIPE_EV_ADD_POST) ? 1 : 2;
+    memcpy(buf + 1, &p, sizeof(nng_pipe));
+
+    /* best-effort write; if the fd is full we drop the event */
+    (void)write(s->notify_fds[1], buf, PIPE_EVENT_SIZE);
+}
+
+static VALUE
+socket_pipe_notify_start(VALUE self)
+{
+    rbnng_socket_t *s = socket_get(self);
+    if (s->notify_fds[0] >= 0)
+        return INT2NUM(s->notify_fds[0]); /* already started */
+
+    int fds[2];
+    if (pipe(fds) < 0)
+        rb_sys_fail("pipe");
+
+    /* make both ends non-blocking:
+     * - write end: so the NNG callback never stalls
+     * - read end:  so recv_pipe_event returns nil immediately when empty */
+    int flags;
+    flags = fcntl(fds[0], F_GETFL);
+    fcntl(fds[0], F_SETFL, flags | O_NONBLOCK);
+    flags = fcntl(fds[1], F_GETFL);
+    fcntl(fds[1], F_SETFL, flags | O_NONBLOCK);
+
+    s->notify_fds[0] = fds[0];
+    s->notify_fds[1] = fds[1];
+
+    int rv;
+    rv = nng_pipe_notify(s->socket, NNG_PIPE_EV_ADD_POST, pipe_notify_cb, s);
+    if (rv != 0) raise_nng_error(rv);
+    rv = nng_pipe_notify(s->socket, NNG_PIPE_EV_REM_POST, pipe_notify_cb, s);
+    if (rv != 0) raise_nng_error(rv);
+
+    return INT2NUM(s->notify_fds[0]);
+}
+
+static VALUE
+socket_pipe_notify_fd(VALUE self)
+{
+    rbnng_socket_t *s = socket_get(self);
+    if (s->notify_fds[0] < 0)
+        rb_raise(rb_eRuntimeError, "pipe_notify_start has not been called");
+    return INT2NUM(s->notify_fds[0]);
+}
+
+static VALUE
+socket_recv_pipe_event(VALUE self)
+{
+    rbnng_socket_t *s = socket_get(self);
+    if (s->notify_fds[0] < 0)
+        rb_raise(rb_eRuntimeError, "pipe_notify_start has not been called");
+
+    uint8_t buf[PIPE_EVENT_SIZE];
+    ssize_t n = read(s->notify_fds[0], buf, PIPE_EVENT_SIZE);
+    if (n < (ssize_t)PIPE_EVENT_SIZE)
+        return Qnil;
+
+    VALUE sym = (buf[0] == 1) ? ID2SYM(rb_intern("connect"))
+                              : ID2SYM(rb_intern("disconnect"));
+
+    nng_pipe p;
+    memcpy(&p, buf + 1, sizeof(nng_pipe));
+
+    return rb_ary_new3(2, sym, rbnng_pipe_wrap(p));
+}
+
 /* Bus0: set default recv timeout */
 static VALUE
 bus0_init(int argc, VALUE *argv, VALUE self)
@@ -453,12 +577,18 @@ rbnng_socket_init(VALUE nng_module)
     rb_define_method(base, "set_opt_size",   socket_set_opt_size,   2);
     rb_define_method(base, "get_opt_string", socket_get_opt_string, 1);
     rb_define_method(base, "set_opt_string", socket_set_opt_string, 2);
+    rb_define_method(base, "pipe_notify_start",  socket_pipe_notify_start,  0);
+    rb_define_method(base, "pipe_notify_fd",     socket_pipe_notify_fd,     0);
+    rb_define_method(base, "recv_pipe_event",    socket_recv_pipe_event,    0);
 
     REG_PROTO(mod, "Pair0",       pair0_init);
     REG_PROTO(mod, "Pair1",       pair1_init);
     REG_PROTO(mod, "Bus0",        bus0_init);
     REG_PROTO(mod, "Pub0",        pub0_init);
-    REG_PROTO(mod, "Sub0",        sub0_init);
+    VALUE cSub0 = rb_define_class_under(mod, "Sub0", base);
+    rb_define_method(cSub0, "initialize", sub0_init, -1);
+    rb_define_method(cSub0, "subscribe", sub0_subscribe, 1);
+    rb_define_method(cSub0, "unsubscribe", sub0_unsubscribe, 1);
     REG_PROTO(mod, "Push0",       push0_init);
     REG_PROTO(mod, "Pull0",       pull0_init);
     REG_PROTO(mod, "Req0",        req0_init);

@@ -132,6 +132,53 @@ describe 'Pub0 / Sub0' do
     end
   end
 
+  it 'subscribe adds a topic at runtime' do
+    Sync do |task|
+      pub = NNG::Socket::Pub0.new
+      pub.listen('inproc://pubsub_subscribe')
+
+      sub = NNG::Socket::Sub0.new(prefix: 'weather.')
+      sub.recv_timeout = 0.2
+      sub.dial('inproc://pubsub_subscribe')
+
+      sleep 0.01
+
+      sub.subscribe('sports.')
+
+      task.async do
+        pub.send('weather.rain')
+        pub.send('sports.goal')
+      end
+
+      messages = [sub.receive.body, sub.receive.body].sort
+      assert_equal %w[sports.goal weather.rain], messages
+    end
+  end
+
+  it 'unsubscribe removes a topic at runtime' do
+    Sync do |task|
+      pub = NNG::Socket::Pub0.new
+      pub.listen('inproc://pubsub_unsubscribe')
+
+      sub = NNG::Socket::Sub0.new(prefix: 'weather.')
+      sub.recv_timeout = 0.2
+      sub.dial('inproc://pubsub_unsubscribe')
+
+      sleep 0.01
+
+      sub.unsubscribe('weather.')
+      sub.subscribe('sports.')
+
+      task.async do
+        pub.send('weather.rain')
+        pub.send('sports.goal')
+      end
+
+      assert_equal 'sports.goal', sub.receive.body
+      assert_raises(Timeout::Error) { sub.receive }
+    end
+  end
+
   it 'multiple publishers to one subscriber' do
     Sync do |task|
       sub = NNG::Socket::Sub0.new
