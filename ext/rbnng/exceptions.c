@@ -86,10 +86,10 @@ raise_nng_error(int rv)
 void
 rbnng_exceptions_init(VALUE nng_module)
 {
-    VALUE m = rb_define_module_under(nng_module, "Error");
-
-    eBase = rb_define_class_under(m, "Error", rb_eRuntimeError);
+    eBase = rb_define_class_under(nng_module, "Error", rb_eRuntimeError);
     rb_gc_register_mark_object(eBase);
+
+    VALUE m = eBase;
 
     DEF_ERR(eInterrupted,                m, "Interrupted");
     DEF_ERR(eOutOfMemory,                m, "OutOfMemory");

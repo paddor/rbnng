@@ -27,16 +27,16 @@ describe 'Error handling' do
     assert_raises(NNG::Error::AddressInUse) { sock2.listen('inproc://error_addr_in_use') }
   end
 
-  it 'all error classes inherit from NNG::Error::Error' do
-    assert_operator NNG::Error::AddressInvalid, :<, NNG::Error::Error
-    assert_operator NNG::Error::ConnectionRefused, :<, NNG::Error::Error
-    assert_operator NNG::Error::AddressInUse, :<, NNG::Error::Error
-    assert_operator NNG::Error::TimedOut, :<, NNG::Error::Error
-    assert_operator NNG::Error::ObjectClosed, :<, NNG::Error::Error
+  it 'all error classes inherit from NNG::Error' do
+    assert_operator NNG::Error::AddressInvalid, :<, NNG::Error
+    assert_operator NNG::Error::ConnectionRefused, :<, NNG::Error
+    assert_operator NNG::Error::AddressInUse, :<, NNG::Error
+    assert_operator NNG::Error::TimedOut, :<, NNG::Error
+    assert_operator NNG::Error::ObjectClosed, :<, NNG::Error
   end
 
   it 'all error classes inherit from RuntimeError' do
-    assert_operator NNG::Error::Error, :<, RuntimeError
+    assert_operator NNG::Error, :<, RuntimeError
   end
 
   it 'raises RuntimeError when forwarding a consumed message' do
