@@ -9,4 +9,8 @@ Rake::TestTask.new(:test) do |t|
   t.test_files = FileList["test/nng/**/*_spec.rb"]
 end
 
+Rake::TestTask.new(:patterns) do |t|
+  t.test_files = FileList["examples/zguide/*.rb"]
+end
+
 task default: :test
