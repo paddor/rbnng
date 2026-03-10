@@ -1,8 +1,8 @@
 {
   "lib/nng/*.rb": {
-    "alternate": "test/nng/{}_spec.rb"
+    "alternate": "test/nng/{}_test.rb"
   },
-  "test/nng/*_spec.rb": {
+  "test/nng/*_test.rb": {
     "alternate": "lib/nng/{}.rb"
   }
 }

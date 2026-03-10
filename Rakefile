@@ -6,7 +6,7 @@ Rake::ExtensionTask.new("rbnng") do |ext|
 end
 
 Rake::TestTask.new(:test) do |t|
-  t.test_files = FileList["test/nng/**/*_spec.rb"]
+  t.test_files = FileList["test/nng/**/*_test.rb"]
   t.ruby_opts = ["-W:no-experimental"]
 end
 

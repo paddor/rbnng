@@ -34,7 +34,7 @@ describe 'Pipe notifications' do
     assert_instance_of NNG::Pipe, pipe2
   end
 
-  it 'each_pipe_event yields events via Async' do
+  it 'on_pipe_event yields events via Async' do
     port = 16_580 + rand(1000)
     events = []
 
@@ -43,7 +43,7 @@ describe 'Pipe notifications' do
       rep.listen("tcp://127.0.0.1:#{port}")
 
       watcher = task.async do
-        rep.each_pipe_event do |event, pipe|
+        rep.on_pipe_event do |event, pipe|
           events << [event, pipe.id]
           break if event == :disconnect
         end
