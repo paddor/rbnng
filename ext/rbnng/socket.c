@@ -155,6 +155,17 @@ static VALUE
 socket_receive(VALUE self)
 {
     rbnng_socket_t *s = socket_get(self);
+    nng_msg *msg = NULL;
+
+    /* Fast path: try non-blocking (no GVL release needed) */
+    int rv = nng_recvmsg(s->socket, &msg, NNG_FLAG_NONBLOCK);
+    if (rv == 0)
+        return rbnng_msg_wrap(msg);
+
+    if (rv != NNG_EAGAIN)
+        raise_nng_error(rv);
+
+    /* Slow path: nothing ready, release GVL and block */
     recv_args_t args;
     args.socket = s->socket;
 
@@ -182,6 +193,17 @@ socket_send(VALUE self, VALUE data)
         raise_nng_error(rv);
     }
 
+    /* Fast path: try non-blocking (no GVL release needed) */
+    rv = nng_sendmsg(s->socket, msg, NNG_FLAG_NONBLOCK);
+    if (rv == 0)
+        return Qnil;
+
+    if (rv != NNG_EAGAIN) {
+        nng_msg_free(msg);
+        raise_nng_error(rv);
+    }
+
+    /* Slow path: socket not ready, release GVL and block */
     send_args_t args;
     args.socket = s->socket;
     args.msg = msg;
