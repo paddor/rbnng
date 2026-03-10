@@ -114,10 +114,10 @@ module NNG
         get_opt_string('peer-name')
       end
 
-      def each_pipe_event
+      def on_pipe_event
         pipe_notify_start
         @pipe_notify_io ||= IO.for_fd(pipe_notify_fd, autoclose: false)
-        return to_enum(:each_pipe_event) unless block_given?
+        return to_enum(:on_pipe_event) unless block_given?
 
         loop do
           @pipe_notify_io.wait_readable

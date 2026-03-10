@@ -19,7 +19,7 @@
   - `#tls_peer_cn` — peer certificate common name
   - `#id` — pipe identifier
 - **`NNG::Device`** — transparent message forwarding between sockets
-- **Pipe event notifications** — `Socket::Base#each_pipe_event` yields `:connect`/`:disconnect` events with `NNG::Pipe`
+- **Pipe event notifications** — `Socket::Base#on_pipe_event` yields `:connect`/`:disconnect` events with `NNG::Pipe`
 - **Runtime statistics** — `NNG.stats` and `NNG.stats_for(socket)` return NNG stat snapshots as nested Hashes
 - **`Sub0#subscribe` / `Sub0#unsubscribe`** — add/remove topic subscriptions at runtime
 - `Socket::Base#forward(msg)` — send an existing message preserving its header, enabling stateless raw mode proxying
