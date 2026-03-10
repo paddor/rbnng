@@ -21,4 +21,5 @@ require 'nng/socket/respondent0'
 
 module NNG
   Msg = Message
+  Error::Error = Error # backwards compatibility
 end
