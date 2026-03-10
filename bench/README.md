@@ -1,6 +1,6 @@
 # Benchmark Results
 
-NNG 1.10.0 | Ruby 4.0.1 | Linux x86_64 | Intel i7-9750H @ 2.60GHz
+NNG 1.10.0 | Ruby 4.0.1 | Linux x86_64
 
 ## Throughput (push/pull, iterations/s)
 
@@ -8,19 +8,19 @@ NNG 1.10.0 | Ruby 4.0.1 | Linux x86_64 | Intel i7-9750H @ 2.60GHz
 
 | Size | inproc | ipc | tcp |
 |------|--------|-----|-----|
-| 64B | 29.3k | 11.3k | 7.9k |
-| 256B | 29.5k | 10.5k | 7.3k |
-| 1024B | 24.9k | 9.9k | 7.6k |
-| 4096B | 22.9k | 7.8k | 7.1k |
+| 64B | 32.7k | 10.3k | 8.7k |
+| 256B | 28.0k | 11.7k | 7.6k |
+| 1024B | 31.4k | 10.3k | 7.0k |
+| 4096B | 32.4k | 8.1k | 6.7k |
 
 ### Threads
 
 | Size | inproc | ipc | tcp |
 |------|--------|-----|-----|
-| 64B | 32.2k | 15.6k | 7.8k |
-| 256B | 31.0k | 15.6k | 9.9k |
-| 1024B | 29.3k | 15.9k | 9.1k |
-| 4096B | 29.5k | 9.9k | 9.3k |
+| 64B | 37.8k | 17.7k | 7.2k |
+| 256B | 38.8k | 17.6k | 9.0k |
+| 1024B | 38.6k | 16.6k | 8.9k |
+| 4096B | 37.8k | 12.2k | 7.2k |
 
 ## Latency (req/rep roundtrip)
 
@@ -28,17 +28,17 @@ NNG 1.10.0 | Ruby 4.0.1 | Linux x86_64 | Intel i7-9750H @ 2.60GHz
 
 | Transport | roundtrips/s | latency |
 |-----------|-------------|---------|
-| inproc | 9.2k | 109 us |
-| ipc | 4.7k | 211 us |
-| tcp | 4.5k | 223 us |
+| inproc | 13.9k | 72 µs |
+| ipc | 5.8k | 172 µs |
+| tcp | 3.6k | 280 µs |
 
 ### Threads
 
 | Transport | roundtrips/s | latency |
 |-----------|-------------|---------|
-| inproc | 4.5k | 221 us |
-| ipc | 3.9k | 258 us |
-| tcp | 3.5k | 282 us |
+| inproc | 5.1k | 198 µs |
+| ipc | 4.3k | 231 µs |
+| tcp | 3.7k | 273 µs |
 
 ## Notes
 
@@ -46,8 +46,8 @@ NNG 1.10.0 | Ruby 4.0.1 | Linux x86_64 | Intel i7-9750H @ 2.60GHz
 - Latency measures full req/rep roundtrip
 - Async uses Ruby fibers via the [async](https://github.com/socketry/async) gem
 - Threads spawn a new `Thread` per iteration for the responder
-- Async is ~2x faster for inproc latency due to cheap fiber switching
-- For throughput, threads are slightly faster on inproc/ipc because push/pull has no responder overhead — the thread scheduler handles the kernel I/O well
+- Async is ~2.7x faster for inproc latency due to cheap fiber switching
+- For throughput, threads are faster on inproc/ipc due to lower push/pull scheduling overhead
 
 ## Running
 
