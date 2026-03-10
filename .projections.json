@@ -3,6 +3,7 @@
     "alternate": "test/nng/{}_test.rb"
   },
   "test/nng/*_test.rb": {
-    "alternate": "lib/nng/{}.rb"
+    "alternate": "lib/nng/{}.rb",
+    "dispatch": "bundle exec ruby -Ilib:test {file}"
   }
 }
