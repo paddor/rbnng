@@ -6,9 +6,6 @@
 
 - Rewritten C extension from scratch
 - `raw` argument changed from positional bool to keyword (`raw: true`)
-- `NNG::Socket::Base` moved to its own file (`lib/nng/socket/base.rb`)
-- Removed legacy alias files (`Socket::Socket`, `ReceiverMethods`, `SenderMethods`)
-- `NNG::Error` is now the base exception class (was `NNG::Error::Error`)
 
 ### Added
 
