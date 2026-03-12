@@ -5,9 +5,10 @@ require 'async'
 require 'benchmark/ips'
 
 TRANSPORTS = {
-  'inproc' => 'inproc://bench_latency',
-  'ipc'    => 'ipc:///tmp/nng_bench_latency.sock',
-  'tcp'    => 'tcp://127.0.0.1:9100',
+  'inproc'   => 'inproc://bench_latency',
+  'abstract' => 'abstract://bench_latency',
+  'ipc'      => 'ipc:///tmp/nng_bench_latency.sock',
+  'tcp'      => 'tcp://127.0.0.1:9100',
 }
 
 puts "NNG #{NNG.nng_version.join('.')} | Ruby #{RUBY_VERSION}"

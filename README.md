@@ -6,7 +6,7 @@
 
 Fast, native Ruby bindings for [nng](https://nng.nanomsg.org/) — a lightweight, broker-less messaging library for building distributed systems.
 
-> **42k+ msg/s** inproc throughput | **54 µs** fiber roundtrip latency | TLS built-in
+> **47k+ msg/s** inproc throughput | **57 µs** fiber roundtrip latency | TLS built-in
 
 ---
 
@@ -278,19 +278,19 @@ Benchmarked with benchmark-ips on Linux x86_64 (NNG 1.10.0, Ruby 4.0.1 +YJIT):
 
 #### Throughput (push/pull)
 
-| | inproc | ipc | tcp |
-|---|--------|-----|-----|
-| **Async** | 36.1k/s | 14.9k/s | 8.0k/s |
-| **Threads** | 40.2k/s | 16.4k/s | 9.0k/s |
+| | inproc | abstract | ipc | tcp |
+|---|--------|----------|-----|-----|
+| **Async** | 47.3k/s | 14.3k/s | 13.3k/s | 8.4k/s |
+| **Threads** | 41.7k/s | 15.4k/s | 16.6k/s | 10.1k/s |
 
 #### Latency (req/rep roundtrip)
 
-| | inproc | ipc | tcp |
-|---|--------|-----|-----|
-| **Async** | 54 µs | 160 µs | 195 µs |
-| **Threads** | 225 µs | 288 µs | 296 µs |
+| | inproc | abstract | ipc | tcp |
+|---|--------|----------|-----|-----|
+| **Async** | 57 µs | 180 µs | 155 µs | 204 µs |
+| **Threads** | 260 µs | 256 µs | 272 µs | 287 µs |
 
-Async fibers deliver 4.2x lower inproc latency thanks to cheap context switching. See [`bench/`](bench/) for full results and scripts.
+Async fibers deliver 4.6x lower inproc latency thanks to cheap context switching. See [`bench/`](bench/) for full results and scripts.
 
 ## Development
 

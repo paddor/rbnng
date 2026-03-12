@@ -6,9 +6,10 @@ require 'benchmark/ips'
 
 MSG_SIZES = [64, 256, 1024, 4096]
 TRANSPORTS = {
-  'inproc' => ->(tag) { "inproc://bench_tp_#{tag}" },
-  'ipc'    => ->(tag) { "ipc:///tmp/nng_bench_tp_#{tag}.sock" },
-  'tcp'    => ->(tag) { "tcp://127.0.0.1:#{9000 + tag.hash.abs % 1000}" },
+  'inproc'   => ->(tag) { "inproc://bench_tp_#{tag}" },
+  'abstract' => ->(tag) { "abstract://bench_tp_#{tag}" },
+  'ipc'      => ->(tag) { "ipc:///tmp/nng_bench_tp_#{tag}.sock" },
+  'tcp'      => ->(tag) { "tcp://127.0.0.1:#{9000 + tag.hash.abs % 1000}" },
 }
 
 puts "NNG #{NNG.nng_version.join('.')} | Ruby #{RUBY_VERSION}"
