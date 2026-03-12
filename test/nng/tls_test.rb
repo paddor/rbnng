@@ -2,65 +2,18 @@
 
 require_relative '../test_helper'
 require 'async'
-require 'openssl'
+require 'localhost'
 
-TLS_SPEC_PORT = [9000]
-
-def next_tls_port
-  TLS_SPEC_PORT[0] += 1
-  TLS_SPEC_PORT[0]
-end
-
-def make_ca
-  key = OpenSSL::PKey::RSA.new(2048)
-  cert = OpenSSL::X509::Certificate.new
-  cert.version = 2
-  cert.serial = 1
-  cert.subject = OpenSSL::X509::Name.parse('/CN=TestCA')
-  cert.issuer = cert.subject
-  cert.public_key = key.public_key
-  cert.not_before = Time.now - 3600
-  cert.not_after = Time.now + 3600
-
-  ef = OpenSSL::X509::ExtensionFactory.new
-  ef.subject_certificate = cert
-  ef.issuer_certificate = cert
-  cert.add_extension(ef.create_extension('basicConstraints', 'CA:TRUE', true))
-  cert.add_extension(ef.create_extension('subjectKeyIdentifier', 'hash'))
-  cert.sign(key, OpenSSL::Digest::SHA256.new)
-  [cert, key]
-end
-
-def make_server_cert(ca_cert, ca_key, cn: '127.0.0.1')
-  key = OpenSSL::PKey::RSA.new(2048)
-  cert = OpenSSL::X509::Certificate.new
-  cert.version = 2
-  cert.serial = 2
-  cert.subject = OpenSSL::X509::Name.parse("/CN=#{cn}")
-  cert.issuer = ca_cert.subject
-  cert.public_key = key.public_key
-  cert.not_before = Time.now - 3600
-  cert.not_after = Time.now + 3600
-
-  ef = OpenSSL::X509::ExtensionFactory.new
-  ef.subject_certificate = cert
-  ef.issuer_certificate = ca_cert
-  cert.add_extension(ef.create_extension('subjectAltName', "IP:127.0.0.1,DNS:localhost"))
-  cert.sign(ca_key, OpenSSL::Digest::SHA256.new)
-  [cert, key]
-end
-
-CA_CERT, CA_KEY = make_ca
-SERVER_CERT, SERVER_KEY = make_server_cert(CA_CERT, CA_KEY)
+AUTH = Localhost::Authority.fetch
+PORT = (9000..).to_enum
 
 describe 'TLS' do
   it 'req/rep over TLS with verify: false' do
-    port = next_tls_port
-    url = "tls+tcp://127.0.0.1:#{port}"
+    url = "tls+tcp://127.0.0.1:#{PORT.next}"
 
     Sync do |task|
       rep = NNG::Socket::Rep0.new
-      rep.listen(url, cert: SERVER_CERT, key: SERVER_KEY)
+      rep.listen(url, cert: AUTH.certificate, key: AUTH.key)
 
       req = NNG::Socket::Req0.new
       req.dial(url, verify: false)
@@ -77,15 +30,14 @@ describe 'TLS' do
   end
 
   it 'req/rep over TLS with CA verification' do
-    port = next_tls_port
-    url = "tls+tcp://127.0.0.1:#{port}"
+    url = "tls+tcp://127.0.0.1:#{PORT.next}"
 
     Sync do |task|
       rep = NNG::Socket::Rep0.new
-      rep.listen(url, cert: SERVER_CERT, key: SERVER_KEY)
+      rep.listen(url, cert: AUTH.certificate, key: AUTH.key)
 
       req = NNG::Socket::Req0.new
-      req.dial(url, ca: CA_CERT, server_name: 'localhost')
+      req.dial(url, ca: AUTH.issuer.certificate, server_name: 'localhost')
 
       task.async do
         msg = rep.receive
@@ -99,15 +51,16 @@ describe 'TLS' do
   end
 
   it 'accepts PEM strings directly' do
-    port = next_tls_port
-    url = "tls+tcp://127.0.0.1:#{port}"
+    url = "tls+tcp://127.0.0.1:#{PORT.next}"
 
     Sync do |task|
       rep = NNG::Socket::Rep0.new
-      rep.listen(url, cert: SERVER_CERT.to_pem, key: SERVER_KEY.to_pem)
+      rep.listen(url, cert: AUTH.certificate.to_pem,
+                      key:  AUTH.key.to_pem)
 
       req = NNG::Socket::Req0.new
-      req.dial(url, ca: CA_CERT.to_pem, server_name: 'localhost')
+      req.dial(url, ca:          AUTH.issuer.certificate.to_pem,
+                    server_name: 'localhost')
 
       task.async do
         msg = rep.receive
@@ -124,29 +77,26 @@ describe 'TLS' do
     require 'tempfile'
 
     cert_file = Tempfile.new(['cert', '.pem'])
-    key_file = Tempfile.new(['key', '.pem'])
-    ca_file = Tempfile.new(['ca', '.pem'])
+    key_file  = Tempfile.new(['key', '.pem'])
+    ca_file   = Tempfile.new(['ca', '.pem'])
 
-    cert_file.write(SERVER_CERT.to_pem)
+    cert_file.write(AUTH.certificate.to_pem)
     cert_file.flush
-    key_file.write(SERVER_KEY.to_pem)
+    key_file.write(AUTH.key.to_pem)
     key_file.flush
-    ca_file.write(CA_CERT.to_pem)
+    ca_file.write(AUTH.issuer.certificate.to_pem)
     ca_file.flush
 
-    port = next_tls_port
-    url = "tls+tcp://127.0.0.1:#{port}"
+    url = "tls+tcp://127.0.0.1:#{PORT.next}"
 
     Sync do |task|
       rep = NNG::Socket::Rep0.new
-      rep.listen(url,
-                 cert: Pathname.new(cert_file.path),
-                 key: Pathname.new(key_file.path))
+      rep.listen(url, cert: Pathname.new(cert_file.path),
+                      key:  Pathname.new(key_file.path))
 
       req = NNG::Socket::Req0.new
-      req.dial(url,
-               ca: Pathname.new(ca_file.path),
-               server_name: 'localhost')
+      req.dial(url, ca:          Pathname.new(ca_file.path),
+                    server_name: 'localhost')
 
       task.async do
         msg = rep.receive
@@ -164,12 +114,11 @@ describe 'TLS' do
   end
 
   it 'pub/sub over TLS' do
-    port = next_tls_port
-    url = "tls+tcp://127.0.0.1:#{port}"
+    url = "tls+tcp://127.0.0.1:#{PORT.next}"
 
     Sync do |task|
       pub = NNG::Socket::Pub0.new
-      pub.listen(url, cert: SERVER_CERT, key: SERVER_KEY)
+      pub.listen(url, cert: AUTH.certificate, key: AUTH.key)
 
       sub = NNG::Socket::Sub0.new
       sub.dial(url, verify: false)
@@ -183,21 +132,18 @@ describe 'TLS' do
   end
 
   it 'server requires client cert (mutual TLS)' do
-    client_cert, client_key = make_server_cert(CA_CERT, CA_KEY, cn: 'client')
-
-    port = next_tls_port
-    url = "tls+tcp://127.0.0.1:#{port}"
+    client = Localhost::Authority.new('client')
+    url    = "tls+tcp://127.0.0.1:#{PORT.next}"
 
     Sync do |task|
       rep = NNG::Socket::Rep0.new
-      rep.listen(url,
-                 cert: SERVER_CERT, key: SERVER_KEY,
-                 ca: CA_CERT, verify: true)
+      rep.listen(url, cert: AUTH.certificate, key: AUTH.key,
+                      ca:   AUTH.issuer.certificate, verify: true)
 
       req = NNG::Socket::Req0.new
-      req.dial(url,
-               cert: client_cert, key: client_key,
-               ca: CA_CERT, server_name: 'localhost')
+      req.dial(url, cert:        client.certificate, key: client.key,
+                    ca:          AUTH.issuer.certificate,
+                    server_name: 'localhost')
 
       task.async do
         msg = rep.receive
@@ -207,6 +153,107 @@ describe 'TLS' do
       req.send('mutual')
       reply = req.receive
       assert_equal 'mtls: mutual', reply.body
+    end
+  end
+
+  describe 'pipe introspection' do
+    it 'Message#pipe returns a Pipe for received messages' do
+      url = "tls+tcp://127.0.0.1:#{PORT.next}"
+
+      Sync do |task|
+        rep = NNG::Socket::Rep0.new
+        rep.listen(url, cert: AUTH.certificate, key: AUTH.key)
+
+        req = NNG::Socket::Req0.new
+        req.dial(url, verify: false)
+
+        task.async do
+          msg = rep.receive
+          rep.send("re: #{msg.body}")
+        end
+
+        req.send('hello')
+        reply = req.receive
+
+        refute_nil reply.pipe
+        assert_instance_of NNG::Pipe, reply.pipe
+        assert_kind_of Integer, reply.pipe.id
+      end
+    end
+
+    it 'tls_verified? is true when CA verification succeeds' do
+      url = "tls+tcp://127.0.0.1:#{PORT.next}"
+
+      Sync do |task|
+        rep = NNG::Socket::Rep0.new
+        rep.listen(url, cert: AUTH.certificate, key: AUTH.key)
+
+        req = NNG::Socket::Req0.new
+        req.dial(url, ca: AUTH.issuer.certificate, server_name: 'localhost')
+
+        task.async do
+          msg = rep.receive
+          rep.send("verified: #{msg.body}")
+        end
+
+        req.send('check')
+        reply = req.receive
+
+        assert reply.pipe.tls_verified?, 'expected pipe to report TLS verified'
+      end
+    end
+
+    it 'tls_peer_cn returns the server CN when verified' do
+      url = "tls+tcp://127.0.0.1:#{PORT.next}"
+
+      Sync do |task|
+        rep = NNG::Socket::Rep0.new
+        rep.listen(url, cert: AUTH.certificate, key: AUTH.key)
+
+        req = NNG::Socket::Req0.new
+        req.dial(url, ca: AUTH.issuer.certificate, server_name: 'localhost')
+
+        task.async do
+          msg = rep.receive
+          rep.send("cn: #{msg.body}")
+        end
+
+        req.send('who')
+        reply = req.receive
+
+        assert_equal 'localhost', reply.pipe.tls_peer_cn
+      end
+    end
+
+    it 'tls_peer_cn returns peer CN in mutual TLS' do
+      client = Localhost::Authority.new('test-client')
+      url    = "tls+tcp://127.0.0.1:#{PORT.next}"
+
+      Sync do |task|
+        rep = NNG::Socket::Rep0.new
+        rep.listen(url, cert: AUTH.certificate, key: AUTH.key,
+                        ca:   AUTH.issuer.certificate, verify: true)
+
+        req = NNG::Socket::Req0.new
+        req.dial(url, cert:        client.certificate, key: client.key,
+                      ca:          AUTH.issuer.certificate,
+                      server_name: 'localhost')
+
+        received_msg = nil
+        task.async do
+          received_msg = rep.receive
+          rep.send("mtls: #{received_msg.body}")
+        end
+
+        req.send('mutual')
+        reply = req.receive
+
+        # Client sees server CN
+        assert_equal 'localhost', reply.pipe.tls_peer_cn
+
+        # Server sees client CN
+        assert_equal 'test-client', received_msg.pipe.tls_peer_cn
+      end
     end
   end
 end

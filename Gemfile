@@ -10,4 +10,5 @@ group :development do
   gem 'minitest'
   gem 'async'
   gem 'benchmark-ips'
+  gem 'localhost'
 end
