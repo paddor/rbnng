@@ -14,7 +14,7 @@ module NNG
 
 
       def listen(url, cert: nil, key: nil, ca: nil, verify: false, server_name: nil)
-        if cert || key || ca
+        resolved = if cert || key || ca
           cert_pem = cert ? TLS.coerce_pem(cert) : nil
           key_pem  = key  ? TLS.coerce_pem(key)  : nil
           ca_pem   = ca   ? TLS.coerce_pem(ca)   : nil
@@ -22,7 +22,7 @@ module NNG
         else
           _listen(url)
         end
-        (@urls ||= []) << url
+        (@urls ||= []) << (resolved || url)
         self
       end
 

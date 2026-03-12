@@ -111,9 +111,35 @@ static VALUE
 socket_listen(VALUE self, VALUE url)
 {
     rbnng_socket_t *s = socket_get(self);
-    int rv = nng_listen(s->socket, StringValueCStr(url), NULL, 0);
+    nng_listener lp;
+    int rv = nng_listen(s->socket, StringValueCStr(url), &lp, 0);
     if (rv != 0)
         raise_nng_error(rv);
+
+    /* Try to get the resolved URL from the listener (e.g. tcp://host:0 → actual port) */
+    char *resolved;
+    rv = nng_listener_get_string(lp, NNG_OPT_URL, &resolved);
+    if (rv == 0) {
+        int is_abstract_auto = (strcmp(resolved, "abstract://") == 0);
+        VALUE result = rb_str_new_cstr(resolved);
+        nng_strfree(resolved);
+
+        /* For abstract:// with auto-generated name, the URL stays "abstract://"
+         * but the actual name is in LOCADDR */
+        if (is_abstract_auto) {
+            nng_sockaddr sa;
+            rv = nng_listener_get_addr(lp, NNG_OPT_LOCADDR, &sa);
+            if (rv == 0 && sa.s_family == NNG_AF_ABSTRACT && sa.s_abstract.sa_len > 0) {
+                char buf[128];
+                int n = snprintf(buf, sizeof(buf), "abstract://%.*s",
+                                 (int)sa.s_abstract.sa_len,
+                                 (const char *)sa.s_abstract.sa_name);
+                return rb_str_new(buf, n);
+            }
+        }
+
+        return result;
+    }
     return Qnil;
 }
 
