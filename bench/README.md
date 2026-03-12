@@ -1,6 +1,6 @@
 # Benchmark Results
 
-NNG 1.10.0 | Ruby 4.0.1 | Linux x86_64
+NNG 1.10.0 | Ruby 4.0.1 +YJIT | Linux x86_64
 
 ## Throughput (push/pull, iterations/s)
 
@@ -8,19 +8,19 @@ NNG 1.10.0 | Ruby 4.0.1 | Linux x86_64
 
 | Size | inproc | ipc | tcp |
 |------|--------|-----|-----|
-| 64B | 32.7k | 10.3k | 8.7k |
-| 256B | 28.0k | 11.7k | 7.6k |
-| 1024B | 31.4k | 10.3k | 7.0k |
-| 4096B | 32.4k | 8.1k | 6.7k |
+| 64B | 36.1k | 14.9k | 8.0k |
+| 256B | 33.3k | 14.1k | 7.5k |
+| 1024B | 33.1k | 11.6k | 7.6k |
+| 4096B | 42.2k | 8.2k | 8.6k |
 
 ### Threads
 
 | Size | inproc | ipc | tcp |
 |------|--------|-----|-----|
-| 64B | 37.8k | 17.7k | 7.2k |
-| 256B | 38.8k | 17.6k | 9.0k |
-| 1024B | 38.6k | 16.6k | 8.9k |
-| 4096B | 37.8k | 12.2k | 7.2k |
+| 64B | 40.2k | 16.4k | 9.0k |
+| 256B | 37.4k | 14.6k | 8.6k |
+| 1024B | 38.1k | 14.1k | 8.5k |
+| 4096B | 35.6k | 8.8k | 7.8k |
 
 ## Latency (req/rep roundtrip)
 
@@ -28,26 +28,27 @@ NNG 1.10.0 | Ruby 4.0.1 | Linux x86_64
 
 | Transport | roundtrips/s | latency |
 |-----------|-------------|---------|
-| inproc | 13.9k | 72 µs |
-| ipc | 5.8k | 172 µs |
-| tcp | 3.6k | 280 µs |
+| inproc | 18.4k | 54 µs |
+| ipc | 6.3k | 160 µs |
+| tcp | 5.1k | 195 µs |
 
 ### Threads
 
 | Transport | roundtrips/s | latency |
 |-----------|-------------|---------|
-| inproc | 5.1k | 198 µs |
-| ipc | 4.3k | 231 µs |
-| tcp | 3.7k | 273 µs |
+| inproc | 4.4k | 225 µs |
+| ipc | 3.5k | 288 µs |
+| tcp | 3.4k | 296 µs |
 
 ## Notes
 
+- All benchmarks run with `ruby --yjit`
 - Throughput measures one-way push/pull (no reply needed)
 - Latency measures full req/rep roundtrip
 - Async uses Ruby fibers via the [async](https://github.com/socketry/async) gem
 - Threads spawn a new `Thread` per iteration for the responder
-- Async is ~2.7x faster for inproc latency due to cheap fiber switching
-- For throughput, threads are faster on inproc/ipc due to lower push/pull scheduling overhead
+- Async is ~4.2x faster for inproc latency due to cheap fiber switching
+- For throughput, threads are slightly faster on inproc due to lower push/pull scheduling overhead
 
 ## Running
 
