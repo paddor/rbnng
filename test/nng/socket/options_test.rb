@@ -3,6 +3,32 @@
 require_relative '../../test_helper'
 
 describe 'Socket options' do
+  describe 'defaults' do
+    it 'recv_timeout defaults to nil (infinite)' do
+      assert_nil NNG::Socket::Pair0.new.recv_timeout
+    end
+
+    it 'send_timeout defaults to nil (infinite)' do
+      assert_nil NNG::Socket::Pair0.new.send_timeout
+    end
+
+    it 'buffers default to protocol-specific values' do
+      assert_equal 128, NNG::Socket::Sub0.new.recv_buffer
+      assert_equal 16, NNG::Socket::Pub0.new.send_buffer
+      assert_equal 1, NNG::Socket::Req0.new.recv_buffer
+    end
+
+    it 'recv_max_size defaults to 0 (no limit)' do
+      assert_equal 0, NNG::Socket::Pair0.new.recv_max_size
+    end
+
+    it 'reconnect_time defaults to 1.0..0.0' do
+      range = NNG::Socket::Pair0.new.reconnect_time
+      assert_in_delta 1.0, range.begin, 0.001
+      assert_in_delta 0.0, range.end, 0.001
+    end
+  end
+
   describe '#name / #name=' do
     it 'sets and gets the socket name' do
       sock = NNG::Socket::Pair0.new
@@ -42,6 +68,15 @@ describe 'Socket options' do
       sock.listen('inproc://opts_url_multi_b')
 
       assert_equal ['inproc://opts_url_multi_a', 'inproc://opts_url_multi_b'], sock.urls
+    end
+
+    it 'resolves tcp://host:0 to the actual port' do
+      sock = NNG::Socket::Pair0.new
+      sock.listen('tcp://127.0.0.1:0')
+
+      url = sock.urls.first
+      assert_match %r{\Atcp://127\.0\.0\.1:\d+\z}, url
+      refute_equal 'tcp://127.0.0.1:0', url
     end
 
     it 'returns a frozen copy' do
