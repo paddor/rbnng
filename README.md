@@ -6,7 +6,7 @@
 
 Fast, native Ruby bindings for [nng](https://nng.nanomsg.org/) — a lightweight, broker-less messaging library for building distributed systems.
 
-> **37k+ msg/s** inproc throughput | **72 µs** fiber roundtrip latency | TLS built-in
+> **42k+ msg/s** inproc throughput | **54 µs** fiber roundtrip latency | TLS built-in
 
 ---
 
@@ -165,17 +165,21 @@ end
 
 ### TLS
 
-Any socket type works over TLS — just use `tls+tcp://`:
+Any socket type works over TLS — just use `tls+tcp://`. The [localhost](https://github.com/socketry/localhost) gem provides self-signed credentials for development:
 
 ```ruby
+require 'localhost'
+
+authority = Localhost::Authority.fetch
+
 Sync do |task|
   rep = NNG::Socket::Rep0.new
   rep.listen('tls+tcp://127.0.0.1:5556',
-             cert: server_cert, key: server_key)
+             cert: authority.certificate, key: authority.key)
 
   req = NNG::Socket::Req0.new
   req.dial('tls+tcp://127.0.0.1:5556',
-           ca: ca_cert, server_name: 'myhost.example.com')
+           ca: authority.issuer.certificate, server_name: 'localhost')
 
   task.async do
     msg = rep.receive
@@ -183,7 +187,9 @@ Sync do |task|
   end
 
   req.send('hello')
-  puts req.receive.body  # => "secure: hello"
+  reply = req.receive
+  puts reply.body             # => "secure: hello"
+  puts reply.pipe.tls_peer_cn # => "localhost"
 end
 ```
 
@@ -217,7 +223,7 @@ msg = rep.receive
 pipe = msg.pipe
 
 pipe.tls_verified?  # => true
-pipe.tls_peer_cn    # => "127.0.0.1"
+pipe.tls_peer_cn    # => "localhost"
 pipe.id             # => 1
 ```
 
@@ -226,12 +232,12 @@ pipe.id             # => 1
 ```ruby
 sock = NNG::Socket::Req0.new
 sock.name = 'my-socket'
-sock.recv_timeout = 1000          # milliseconds
-sock.send_timeout = 1000
-sock.recv_buffer = 128            # message count
-sock.send_buffer = 128
-sock.recv_max_size = 1048576      # bytes
-sock.reconnect_time = 0.1..30.0  # seconds (min..max)
+sock.recv_timeout = 1.0           # seconds (default: nil = infinite)
+sock.send_timeout = 1.0           # seconds (default: nil = infinite)
+sock.recv_buffer = 128            # message count (default: protocol-specific)
+sock.send_buffer = 128            # message count (default: protocol-specific)
+sock.recv_max_size = 1_048_576    # bytes (default: 0 = no limit)
+sock.reconnect_time = 0.1..30.0  # seconds min..max (default: 1.0..0.0)
 
 sock.raw?                         # => false
 sock.protocol_name                # => "req"
@@ -262,28 +268,29 @@ All classes live under `NNG::Socket::` and support `raw: true` for raw mode.
 |-----------|-----------|-------|
 | In-process | `inproc://` | Fastest, same process only |
 | IPC | `ipc://` | Unix domain sockets |
+| Abstract | `abstract://` | Linux abstract namespace (no filesystem path) |
 | TCP | `tcp://` | TCP/IP |
 | TLS | `tls+tcp://` | TCP + TLS encryption (requires mbedTLS) |
 
 ## Performance
 
-Benchmarked with benchmark-ips on Linux x86_64 (NNG 1.10.0, Ruby 4.0.1):
+Benchmarked with benchmark-ips on Linux x86_64 (NNG 1.10.0, Ruby 4.0.1 +YJIT):
 
 #### Throughput (push/pull)
 
 | | inproc | ipc | tcp |
 |---|--------|-----|-----|
-| **Async** | 32.7k/s | 10.3k/s | 8.7k/s |
-| **Threads** | 37.8k/s | 17.7k/s | 7.2k/s |
+| **Async** | 36.1k/s | 14.9k/s | 8.0k/s |
+| **Threads** | 40.2k/s | 16.4k/s | 9.0k/s |
 
 #### Latency (req/rep roundtrip)
 
 | | inproc | ipc | tcp |
 |---|--------|-----|-----|
-| **Async** | 72 µs | 172 µs | 280 µs |
-| **Threads** | 198 µs | 231 µs | 273 µs |
+| **Async** | 54 µs | 160 µs | 195 µs |
+| **Threads** | 225 µs | 288 µs | 296 µs |
 
-Async fibers deliver 2.7x lower inproc latency thanks to cheap context switching. See [`bench/`](bench/) for full results and scripts.
+Async fibers deliver 4.2x lower inproc latency thanks to cheap context switching. See [`bench/`](bench/) for full results and scripts.
 
 ## Development
 
