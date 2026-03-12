@@ -135,8 +135,7 @@ describe 'Pub0 / Sub0' do
       pub = NNG::Socket::Pub0.new
       pub.listen('inproc://pubsub_subscribe')
 
-      sub = NNG::Socket::Sub0.new(prefix: 'weather.')
-      sub.recv_timeout = 0.2
+      sub = NNG::Socket::Sub0.new(prefix: 'weather.', timeout: 0.2)
       sub.dial('inproc://pubsub_subscribe')
 
       sleep 0.01
@@ -158,8 +157,7 @@ describe 'Pub0 / Sub0' do
       pub = NNG::Socket::Pub0.new
       pub.listen('inproc://pubsub_unsubscribe')
 
-      sub = NNG::Socket::Sub0.new(prefix: 'weather.')
-      sub.recv_timeout = 0.2
+      sub = NNG::Socket::Sub0.new(prefix: 'weather.', timeout: 0.2)
       sub.dial('inproc://pubsub_unsubscribe')
 
       sleep 0.01

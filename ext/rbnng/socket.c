@@ -356,15 +356,35 @@ socket_set_opt_string(VALUE self, VALUE name, VALUE val)
 
 /* ── Protocol initializers ──────────────────────────────────────── */
 
-static int
-parse_raw_kwarg(int argc, VALUE *argv)
+typedef struct {
+    int raw;
+    VALUE timeout;
+} init_kwargs_t;
+
+static init_kwargs_t
+parse_init_kwargs(int argc, VALUE *argv)
 {
+    init_kwargs_t kw = { .raw = 0, .timeout = Qnil };
     VALUE opts = Qnil;
     rb_scan_args(argc, argv, ":", &opts);
-    if (NIL_P(opts))
-        return 0;
-    VALUE raw = rb_hash_lookup2(opts, ID2SYM(rb_intern("raw")), Qfalse);
-    return RTEST(raw);
+    if (!NIL_P(opts)) {
+        kw.raw = RTEST(rb_hash_lookup2(opts, ID2SYM(rb_intern("raw")), Qfalse));
+        kw.timeout = rb_hash_lookup2(opts, ID2SYM(rb_intern("timeout")), Qnil);
+    }
+    return kw;
+}
+
+static void
+apply_timeout(nng_socket socket, VALUE timeout)
+{
+    if (NIL_P(timeout)) return;
+
+    int ms = (int)(NUM2DBL(timeout) * 1000);
+    int rv;
+    rv = nng_socket_set_ms(socket, NNG_OPT_RECVTIMEO, ms);
+    if (rv != 0) raise_nng_error(rv);
+    rv = nng_socket_set_ms(socket, NNG_OPT_SENDTIMEO, ms);
+    if (rv != 0) raise_nng_error(rv);
 }
 
 #define DEF_INIT(name, open_fn, open_raw_fn)                          \
@@ -376,13 +396,14 @@ parse_raw_kwarg(int argc, VALUE *argv)
                              &rbnng_socket_type, s);                  \
         if (s->initialized)                                           \
             rb_raise(rb_eRuntimeError, "socket already initialized"); \
-        int raw = parse_raw_kwarg(argc, argv);                        \
-        int rv = raw ? open_raw_fn(&s->socket)                        \
-                     : open_fn(&s->socket);                           \
+        init_kwargs_t kw = parse_init_kwargs(argc, argv);             \
+        int rv = kw.raw ? open_raw_fn(&s->socket)                    \
+                        : open_fn(&s->socket);                        \
         if (rv != 0)                                                  \
             raise_nng_error(rv);                                      \
         s->initialized = 1;                                           \
-        rb_ivar_set(self, rb_intern("@raw"), raw ? Qtrue : Qfalse);   \
+        rb_ivar_set(self, rb_intern("@raw"), kw.raw ? Qtrue : Qfalse);\
+        apply_timeout(s->socket, kw.timeout);                         \
         return self;                                                  \
     }
 
@@ -398,7 +419,7 @@ DEF_INIT(rep0_init,       nng_rep0_open,        nng_rep0_open_raw)
 DEF_INIT(surveyor0_init,  nng_surveyor0_open,   nng_surveyor0_open_raw)
 DEF_INIT(respondent0_init,nng_respondent0_open, nng_respondent0_open_raw)
 
-/* Sub0: subscribe with optional prefix: kwarg (default: all) */
+/* Sub0: subscribe with optional prefix: kwarg (default: subscribe to all) */
 static VALUE
 sub0_init(int argc, VALUE *argv, VALUE self)
 {
@@ -412,9 +433,11 @@ sub0_init(int argc, VALUE *argv, VALUE self)
 
     int raw = 0;
     VALUE prefix = Qnil;
+    VALUE timeout = Qnil;
     if (!NIL_P(opts)) {
         raw = RTEST(rb_hash_lookup2(opts, ID2SYM(rb_intern("raw")), Qfalse));
         prefix = rb_hash_lookup2(opts, ID2SYM(rb_intern("prefix")), Qnil);
+        timeout = rb_hash_lookup2(opts, ID2SYM(rb_intern("timeout")), Qnil);
     }
 
     int rv = raw ? nng_sub0_open_raw(&s->socket)
@@ -433,6 +456,8 @@ sub0_init(int argc, VALUE *argv, VALUE self)
     }
     if (rv != 0)
         raise_nng_error(rv);
+
+    apply_timeout(s->socket, timeout);
 
     return self;
 }
@@ -573,15 +598,20 @@ socket_recv_pipe_event(VALUE self)
     return rb_ary_new3(2, sym, rbnng_pipe_wrap(p));
 }
 
-/* Bus0: set default recv timeout */
+/* Bus0: set default recv timeout so broadcast doesn't block forever */
 static VALUE
 bus0_init(int argc, VALUE *argv, VALUE self)
 {
     bus0_init_inner(argc, argv, self);
     rbnng_socket_t *s = socket_get(self);
-    int rv = nng_socket_set_ms(s->socket, NNG_OPT_RECVTIMEO, 100);
-    if (rv != 0)
-        raise_nng_error(rv);
+    nng_duration cur;
+    int rv = nng_socket_get_ms(s->socket, NNG_OPT_RECVTIMEO, &cur);
+    if (rv == 0 && cur < 0) {
+        /* no timeout was set via kwarg, apply default */
+        rv = nng_socket_set_ms(s->socket, NNG_OPT_RECVTIMEO, 100);
+        if (rv != 0)
+            raise_nng_error(rv);
+    }
     return self;
 }
 
