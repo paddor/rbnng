@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-require 'minitest/autorun'
-require 'minitest/spec'
+require_relative '../test_helper'
 require 'async'
-require 'nng'
 
 describe NNG::Device do
   def start_device(sock1, sock2)

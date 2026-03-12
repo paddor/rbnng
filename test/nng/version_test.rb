@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/autorun'
-require 'minitest/spec'
-require 'nng'
+require_relative '../test_helper'
 
 describe NNG do
   describe '.nng_version' do

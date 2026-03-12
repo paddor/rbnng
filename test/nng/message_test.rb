@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-require 'minitest/autorun'
-require 'minitest/spec'
+require_relative '../test_helper'
 require 'async'
-require 'nng'
 
 MSG_SPEC_SEQ = [0]
 

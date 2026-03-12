@@ -7,7 +7,6 @@ end
 
 Rake::TestTask.new(:test) do |t|
   t.test_files = FileList["test/nng/**/*_test.rb"]
-  t.ruby_opts = ["-W:no-experimental"]
 end
 
 Rake::TestTask.new(:patterns) do |t|

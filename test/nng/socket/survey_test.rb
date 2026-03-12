@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-require 'minitest/autorun'
-require 'minitest/spec'
+require_relative '../../test_helper'
 require 'async'
-require 'nng'
 
 describe 'Surveyor0 / Respondent0' do
   it 'respondent receives survey and surveyor receives response' do

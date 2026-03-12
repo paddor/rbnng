@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-require 'minitest/autorun'
-require 'minitest/spec'
+require_relative '../test_helper'
 require 'async'
 require 'openssl'
-require 'nng'
 
 TLS_SPEC_PORT = [9000]
 
