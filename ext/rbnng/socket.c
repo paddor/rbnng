@@ -507,18 +507,38 @@ socket_pipe_notify_start(VALUE self)
      * - read end:  so recv_pipe_event returns nil immediately when empty */
     int flags;
     flags = fcntl(fds[0], F_GETFL);
-    fcntl(fds[0], F_SETFL, flags | O_NONBLOCK);
+    if (flags < 0 || fcntl(fds[0], F_SETFL, flags | O_NONBLOCK) < 0) {
+        close(fds[0]);
+        close(fds[1]);
+        rb_sys_fail("fcntl");
+    }
     flags = fcntl(fds[1], F_GETFL);
-    fcntl(fds[1], F_SETFL, flags | O_NONBLOCK);
+    if (flags < 0 || fcntl(fds[1], F_SETFL, flags | O_NONBLOCK) < 0) {
+        close(fds[0]);
+        close(fds[1]);
+        rb_sys_fail("fcntl");
+    }
 
     s->notify_fds[0] = fds[0];
     s->notify_fds[1] = fds[1];
 
     int rv;
     rv = nng_pipe_notify(s->socket, NNG_PIPE_EV_ADD_POST, pipe_notify_cb, s);
-    if (rv != 0) raise_nng_error(rv);
+    if (rv != 0) {
+        close(s->notify_fds[0]);
+        close(s->notify_fds[1]);
+        s->notify_fds[0] = -1;
+        s->notify_fds[1] = -1;
+        raise_nng_error(rv);
+    }
     rv = nng_pipe_notify(s->socket, NNG_PIPE_EV_REM_POST, pipe_notify_cb, s);
-    if (rv != 0) raise_nng_error(rv);
+    if (rv != 0) {
+        close(s->notify_fds[0]);
+        close(s->notify_fds[1]);
+        s->notify_fds[0] = -1;
+        s->notify_fds[1] = -1;
+        raise_nng_error(rv);
+    }
 
     return INT2NUM(s->notify_fds[0]);
 }
