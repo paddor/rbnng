@@ -15,7 +15,7 @@ Fast, native Ruby bindings for [nng](https://nng.nanomsg.org/) — a lightweight
 ## Highlights
 
 - **All scalability protocols** — req/rep, pub/sub, push/pull, pair, survey, bus
-- **Native C extension** — no FFI overhead, GVL released during blocking I/O
+- **Native C extension** — no FFI overhead, GVL released during blocking I/O, thread-safe
 - **Async-first** — first-class [async](https://github.com/socketry/async) fiber support
 - **Raw mode** — stateless proxying with `#forward`
 - **TLS transport** — `tls+tcp://` with mTLS, certificate pinning, and peer introspection
