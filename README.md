@@ -3,6 +3,7 @@
 [![CI](https://github.com/paddor/rbnng/actions/workflows/ci.yml/badge.svg)](https://github.com/paddor/rbnng/actions/workflows/ci.yml)
 [![Gem Version](https://img.shields.io/gem/v/nng?color=e9573f)](https://rubygems.org/gems/nng)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![TLS](https://img.shields.io/badge/TLS-supported-2ea44f?logo=letsencrypt&logoColor=white)](#tls)
 [![Ruby](https://img.shields.io/badge/Ruby-%3E%3D%203.2-CC342D?logo=ruby&logoColor=white)](https://www.ruby-lang.org)
 
 Fast, native Ruby bindings for [nng](https://nng.nanomsg.org/) — a lightweight, broker-less messaging library for building distributed systems.
