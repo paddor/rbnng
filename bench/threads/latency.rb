@@ -23,9 +23,17 @@ TRANSPORTS.each do |transport, addr|
   rep.listen(addr)
   req.dial(addr)
 
+  responder = Thread.new do
+    loop do
+      msg = rep.receive
+      rep.send(msg.body)
+    rescue NNG::Error::ObjectClosed, Errno::EBADF
+      break
+    end
+  end
+
   # Warm up
   100.times do
-    Thread.new { rep.send(rep.receive.body) }
     req.send(payload)
     req.receive
   end
@@ -34,11 +42,14 @@ TRANSPORTS.each do |transport, addr|
     x.config(warmup: 1, time: 3)
 
     x.report('roundtrip') do
-      Thread.new { rep.send(rep.receive.body) }
       req.send(payload)
       req.receive
     end
   end
+
+  req.close
+  rep.close
+  responder.join(1)
 
   puts
 end

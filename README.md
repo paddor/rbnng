@@ -291,9 +291,9 @@ Benchmarked with benchmark-ips on Linux x86_64 (NNG 1.10.0, Ruby 4.0.1 +YJIT):
 | | inproc | abstract | ipc | tcp |
 |---|--------|----------|-----|-----|
 | **Async** | 57 µs | 180 µs | 155 µs | 204 µs |
-| **Threads** | 260 µs | 256 µs | 272 µs | 287 µs |
+| **Threads** | 106 µs | 118 µs | 134 µs | 151 µs |
 
-Async fibers deliver 4.6x lower inproc latency thanks to cheap context switching. See [`bench/`](bench/) for full results and scripts.
+Async fibers deliver 1.9x lower inproc latency thanks to cheap context switching. See [`bench/`](bench/) for full results and scripts.
 
 ## Development
 
