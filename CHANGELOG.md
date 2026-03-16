@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- Fix release workflow
+
 ## 1.0.0
 
 ### Breaking changes
