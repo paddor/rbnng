@@ -92,6 +92,9 @@ end
 ### Pub / Sub
 
 ```ruby
+require 'nng'
+require 'async'
+
 Sync do |task|
   pub = NNG::Socket::Pub0.new
   pub.listen('ipc:///tmp/pubsub.sock')
@@ -119,6 +122,9 @@ end
 ### Push / Pull (Pipeline)
 
 ```ruby
+require 'nng'
+require 'async'
+
 Sync do |task|
   pull = NNG::Socket::Pull0.new
   pull.listen('inproc://pipeline')
@@ -136,6 +142,9 @@ end
 Raw mode sockets bypass the protocol state machine, enabling stateless message forwarding:
 
 ```ruby
+require 'nng'
+require 'async'
+
 Sync do |task|
   backend = NNG::Socket::Rep0.new
   backend.listen('inproc://backend')
@@ -171,6 +180,8 @@ end
 Any socket type works over TLS — just use `tls+tcp://`. The [localhost](https://github.com/socketry/localhost) gem provides self-signed credentials for development:
 
 ```ruby
+require 'nng'
+require 'async'
 require 'localhost'
 
 authority = Localhost::Authority.fetch
